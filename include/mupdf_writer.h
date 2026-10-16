@@ -13,8 +13,8 @@
 #include <string>
 
 namespace sc::mupdf {
-    // Writes a PDF file with MuPDF: pages of text, shapes, images, SVG drawings (canvas::draw(sc::svg,
-    // rect)) and links. The same calls as sc-pdf's sc::pdf, which writes with PDFHummus, so the two
+    // Writes a PDF file with MuPDF: pages of text, shapes, images, drawings and SVG (canvas::draw(
+    // sc::drawing, rect)) and links. The same calls as sc-pdf's sc::pdf, which writes with PDFHummus, so the two
     // can be swapped and their files compared.
     //
     // An sc::canvas: shapes and text are drawn with its draw() calls, and text measured with its

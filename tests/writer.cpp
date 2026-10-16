@@ -141,9 +141,9 @@ int main() {
         pdf.draw(sc::circle{{400, 100}, 40}, {sc::stroke{sc::color::Black, 2}, sc::color{0.96, 0.83, 0.37}});
         pdf.draw(sc::line{{50, 200}, {545, 200}}, sc::stroke{sc::color::Black, 0.5});
         pdf.draw(sc::polygon{{50, 300}, {100, 220}, {150, 300}}, sc::stroke{sc::color::Red, 3});
-        pdf.draw(sc::svg{R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">)svg"
-                         R"svg(<defs><clipPath id="c"><circle cx="50" cy="50" r="45"/></clipPath></defs>)svg"
-                         R"svg(<rect clip-path="url(#c)" width="100" height="100" fill="#264653"/></svg>)svg"},
+        pdf.draw(sc::drawing::from_svg(R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">)svg"
+                                       R"svg(<defs><clipPath id="c"><circle cx="50" cy="50" r="45"/></clipPath></defs>)svg"
+                                       R"svg(<rect clip-path="url(#c)" width="100" height="100" fill="#264653"/></svg>)svg"),
                  sc::rect{250, 220, 100, 100});
         pdf.draw_image(image_file, {50, 350, 300, 200});
         pdf.add_link("https://example.com/sc-mupdf", {50, 600, 120, 20});
