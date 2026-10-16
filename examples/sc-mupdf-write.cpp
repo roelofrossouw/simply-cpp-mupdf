@@ -1,8 +1,8 @@
 // Writes a PDF with MuPDF: the same page as sc-pdf's sc-pdf-demo (which writes with PDFHummus),
 // call for call, so the two files can be compared. A heading, text measured to centre it, lines,
-// shapes, SVG drawings (curves, transforms, an even-odd hole, a clip path), a link, and a path
-// placed in the bottom-right corner by its bounds(), with half- and three-quarter-opaque eyes. Each
-// line shows a call, as written, and what it returned. --help lists the options.
+// shapes, SVG drawings (curves, transforms, an even-odd hole, a clip path), a half-transparent
+// circle over the boxes, a link, and a rubber-band path placed in the bottom-right corner by its
+// bounds(). Each line shows a call, as written, and what it returned. --help lists the options.
 
 #include <filesystem>
 #include <iostream>
@@ -66,6 +66,10 @@ int main(int argc, char **argv) {
                                 R"(<path d="M120 130 Q160 170 200 130" stroke="#2a6f97" stroke-width="8" fill="none"/></svg>)";
         SC_STEP(pdf.draw(sc::drawing::from_svg(svg), sc::rect{315, 190, 230, 120})); // sc-graphics reads it into a drawing
 
+        sc::console::heading("Transparency: a colour's alpha");
+        // Over the two boxes, so what's behind shows through: filled half opaque, outlined three-quarters.
+        SC_STEP(pdf.draw(sc::circle{{297.5, 250}, 75}, {sc::stroke{sc::color{0.75, 0.1, 0.1, 0.75}, 3}, sc::color{0.9, 0.2, 0.2, 0.5}}));
+
         sc::console::heading("A link");
         SC_STEP(pdf.draw(sc::text{"github.com/roelofrossouw/simply-cpp", {50, 490}}, sc::color::Blue));
         SC_STEP(pdf.add_link("https://github.com/roelofrossouw/simply-cpp", {50, 476, 220, 18}));
@@ -96,18 +100,22 @@ int main(int argc, char **argv) {
         sc::console::step("pdf.draw(star / ring / disc, frame - 10);   // three 150-point frames");
 
         sc::console::heading("A path in the bottom-right corner, placed by its bounds()");
-        // A face drawn round (0, 0), with a curl of hair whose control points reach higher than the
-        // curve does.
-        auto face = to_path(sc::circle{{0, 0}, 40});
-        face.move_to({-22, 12}).cubic_to({-10, 28}, {10, 28}, {22, 12});  // the smile
-        face.move_to({-8, -40}).cubic_to({-8, -60}, {8, -60}, {8, -40});  // the curl
-        SC_SHOW(face.bounds()); // exact: the curl's top is at -55, not its control points' -60
-        const sc::point corner{pdf.page_width() - 30, pdf.page_height() - 30};  // 30 points in from the corner
-        const sc::point offset = corner - face.bounds().right_bottom();         // moves the bounds' corner there
-        SC_STEP(pdf.draw(face.transformed(1, 1, offset), sc::stroke{sc::color::Black, 2}));
-        // Transparency is the colour's alpha: one eye half opaque, the other three-quarters.
-        SC_STEP(pdf.draw(sc::circle{offset + sc::point{-14, -10}, 6}, sc::appearance::filled(sc::color{0.15, 0.27, 0.33, 0.5})));
-        SC_STEP(pdf.draw(sc::circle{offset + sc::point{14, -10}, 6}, sc::appearance::filled(sc::color{0.15, 0.27, 0.33, 0.75})));
+        // A rubber band pinched round two pegs, tilted: its curves' control points reach well past
+        // the curves themselves, so the box round them isn't the band's. bounds() is the band's own.
+        sc::path band;
+        band.move_to({0, 40})
+            .cubic_to({0, -10}, {50, -10}, {60, 20})    // over the left peg
+            .cubic_to({70, -10}, {120, -10}, {120, 40}) // over the right peg
+            .cubic_to({120, 90}, {70, 90}, {60, 60})    // under it
+            .cubic_to({50, 90}, {0, 90}, {0, 40})       // and back
+            .close();
+        band = sc::transform::rotate(-15).apply(band);
+        SC_SHOW(band.bounds()); // the band's top, bottom and sides, not its control points'
+        const sc::point corner{pdf.page_width() - 30, pdf.page_height() - 30};    // 30 points in from the corner
+        band = sc::transform::translate(corner - band.bounds().right_bottom()).apply(band);
+        SC_STEP(pdf.draw(band.bounds(), sc::stroke{sc::color{0.6, 0.6, 0.6}, 0.5})); // its bounds, touching it all round
+        SC_STEP(pdf.draw(band, {sc::stroke{sc::color{0.55, 0.27, 0.07}, 2}, sc::color{0.96, 0.64, 0.38}}));
+
         sc::console::heading("Finishing the file");
         if (!svg_file.empty()) {
             SC_STEP(pdf.new_page());
