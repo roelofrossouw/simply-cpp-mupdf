@@ -64,23 +64,23 @@ int main(int argc, char **argv) {
                                 R"(<rect width="320" height="200" rx="16" fill="#2a6f97"/>)"
                                 R"(<circle cx="160" cy="100" r="70" fill="#f4d35e"/>)"
                                 R"(<path d="M120 130 Q160 170 200 130" stroke="#2a6f97" stroke-width="8" fill="none"/></svg>)";
-        SC_STEP(pdf.draw(sc::svg{svg}, sc::rect{315, 190, 230, 120})); // sc-graphics reads it into paths
+        SC_STEP(pdf.draw(sc::drawing::from_svg(svg), sc::rect{315, 190, 230, 120})); // sc-graphics reads it into a drawing
 
         sc::console::heading("A link");
         SC_STEP(pdf.draw(sc::text{"github.com/roelofrossouw/simply-cpp", {50, 490}}, sc::color::Blue));
         SC_STEP(pdf.add_link("https://github.com/roelofrossouw/simply-cpp", {50, 476, 220, 18}));
 
         sc::console::heading("More SVG: transforms, arcs with an even-odd hole, a clip path");
-        const sc::svg star{R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">)svg"
-                           R"svg(<g transform="rotate(15 50 50)"><polygon fill="#e76f51" stroke="#264653" stroke-width="3")svg"
-                           R"svg( points="50,5 61,38 95,38 67,58 78,92 50,72 22,92 33,58 5,38 39,38"/></g></svg>)svg"};
-        const sc::svg ring{R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">)svg"
-                           R"svg(<path fill="#2a9d8f" fill-rule="evenodd" d="M5 50 A45 45 0 1 1 95 50 A45 45 0 1 1 5 50 Z)svg"
-                           R"svg( M25 50 A25 25 0 1 0 75 50 A25 25 0 1 0 25 50 Z"/></svg>)svg"};
-        const sc::svg disc{R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">)svg"
-                           R"svg(<defs><clipPath id="round"><circle cx="50" cy="50" r="45"/></clipPath></defs>)svg"
-                           R"svg(<rect clip-path="url(#round)" width="100" height="50" fill="#e9c46a"/>)svg"
-                           R"svg(<rect clip-path="url(#round)" y="50" width="100" height="50" fill="#264653"/></svg>)svg"};
+        const auto star = sc::drawing::from_svg(R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">)svg"
+                                                R"svg(<g transform="rotate(15 50 50)"><polygon fill="#e76f51" stroke="#264653" stroke-width="3")svg"
+                                                R"svg( points="50,5 61,38 95,38 67,58 78,92 50,72 22,92 33,58 5,38 39,38"/></g></svg>)svg");
+        const auto ring = sc::drawing::from_svg(R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">)svg"
+                                                R"svg(<path fill="#2a9d8f" fill-rule="evenodd" d="M5 50 A45 45 0 1 1 95 50 A45 45 0 1 1 5 50 Z)svg"
+                                                R"svg( M25 50 A25 25 0 1 0 75 50 A25 25 0 1 0 25 50 Z"/></svg>)svg");
+        const auto disc = sc::drawing::from_svg(R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">)svg"
+                                                R"svg(<defs><clipPath id="round"><circle cx="50" cy="50" r="45"/></clipPath></defs>)svg"
+                                                R"svg(<rect clip-path="url(#round)" width="100" height="50" fill="#e9c46a"/>)svg"
+                                                R"svg(<rect clip-path="url(#round)" y="50" width="100" height="50" fill="#264653"/></svg>)svg");
         double top = 530, left_edge = 50;
         if (top + 300 > pdf.page_height()) { // a shorter page (landscape, Letter) has no room left: the frames go on the next
             SC_STEP(pdf.new_page());
@@ -111,9 +111,9 @@ int main(int argc, char **argv) {
         sc::console::heading("Finishing the file");
         if (!svg_file.empty()) {
             SC_STEP(pdf.new_page());
-            const auto drawing = sc::svg::load(svg_file);
-            sc::console::step("const auto drawing = sc::svg::load(svg_file);   // " + svg_file.string());
-            SC_SHOW(drawing.elements().size());
+            const auto drawing = sc::drawing::load_svg(svg_file);
+            sc::console::step("const auto drawing = sc::drawing::load_svg(svg_file);   // " + svg_file.string());
+            SC_SHOW(drawing.size());
             SC_STEP(pdf.draw(drawing, sc::rect{50, 50, pdf.page_width() - 100, pdf.page_height() - 100}));
         }
         SC_SHOW(pdf.page_count());
