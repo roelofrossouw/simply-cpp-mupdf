@@ -1,0 +1,1 @@
+C++20 PDF reader on MuPDF: pages, text blocks and lines with their positions and fonts, page images
