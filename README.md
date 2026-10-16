@@ -89,9 +89,10 @@ pdf.new_page();
 pdf.close();                                                 // or let the destructor finish it
 ```
 
-Fonts are found through fontconfig, the same lookup sc-pdf uses, so both
-embed the same font files. Curves, rounded corners, even-odd fills and SVG
-clip paths stay vector graphics, and colours are painted opaque as in sc-pdf.
+Fonts are found by sc-graphics' `sc::font_face` (fontconfig), the lookup every
+canvas shares, so both embed the same font files. Curves, rounded corners,
+even-odd fills and SVG clip paths stay vector graphics, and colours are
+painted opaque as in sc-pdf.
 With MuPDF 1.27 and later (resolute, Homebrew) only the glyphs used are
 embedded. Jammy's 1.19 and noble's 1.23 can't subset, so they embed whole
 fonts and their files are much larger. The files aren't byte-for-byte what

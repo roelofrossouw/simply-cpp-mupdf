@@ -1,7 +1,8 @@
 #include "mupdf_writer.h"
 
 #include "fitz_call.h"
-#include "font_file.h"
+
+#include <font.h>
 
 #include <mupdf/pdf.h>
 
@@ -180,10 +181,13 @@ namespace sc::mupdf {
         fz_font *font_for(const font &spec) {
             const auto key = std::tuple{spec.family, spec.weight, spec.italic, spec.style};
             if (const auto found = fonts.find(key); found != fonts.end()) return found->second;
-            const auto file = detail::font_file(spec);
-            if (file.empty()) throw std::runtime_error("sc::mupdf::writer: fontconfig found no font for \"" + spec.family + "\"");
+            // sc-graphics' lookup (fontconfig), the same as every canvas's.
+            const auto face = spec.face();
+            if (!face) throw std::runtime_error("sc::mupdf::writer: fontconfig found no font for \"" + spec.family + "\"");
+            const std::string file = face->file();
+            const int index = face->index();
             fz_font *loaded = nullptr;
-            detail::call(context, "sc::mupdf::writer: the font " + file, [&] { loaded = fz_new_font_from_file(context, nullptr, file.c_str(), 0, 0); });
+            detail::call(context, "sc::mupdf::writer: the font " + file, [&] { loaded = fz_new_font_from_file(context, nullptr, file.c_str(), index, 0); });
             fonts.emplace(key, loaded);
             return loaded;
         }
