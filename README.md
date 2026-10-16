@@ -6,13 +6,22 @@ pages drawn as PNG images; and PDFs written with the same calls as sc-pdf's
 `sc::pdf`, so the two engines can be swapped and compared. MuPDF also opens
 XPS, EPUB, CBZ and images.
 
-**License: AGPL-3.0**, because MuPDF is (or a commercial license from
-[Artifex](https://artifex.com/licensing/)). A program that links this module
-falls under the AGPL. The rest of simply-cpp is Apache-2.0, and
-[sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf), the PDF *writer*,
-doesn't use MuPDF, so it stays Apache-2.0.
+## Licence, and the alternative
 
-**Documentation:** the [simply-cpp wiki](https://github.com/roelofrossouw/simply-cpp/wiki) has [getting started](https://github.com/roelofrossouw/simply-cpp/wiki/Getting-Started) for the whole suite.
+**sc-mupdf is AGPL-3.0, a restrictive licence**, because MuPDF is. A program
+that links it must be offered as source under the AGPL to the people it's
+given to, and to the users of a network service built on it (or needs a
+commercial MuPDF licence from [Artifex](https://artifex.com/licensing/)).
+
+**For writing PDFs under a permissive licence, use
+[sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf) instead:**
+Apache-2.0, on PDFHummus, with the same calls. `sc::mupdf::writer` and
+`sc::pdf` are both an `sc::canvas`, so switching is one class name. What
+sc-pdf doesn't do is read, search or render PDFs: that's what sc-mupdf adds.
+The wiki's [PDF engines](https://github.com/roelofrossouw/simply-cpp/wiki/PDF-Engines)
+page compares the two.
+
+**Documentation:** the [simply-cpp wiki](https://github.com/roelofrossouw/simply-cpp/wiki) has a [MuPDF guide](https://github.com/roelofrossouw/simply-cpp/wiki/MuPDF) and the [sc-mupdf reference](https://github.com/roelofrossouw/simply-cpp/wiki/Reference-sc-mupdf), plus [getting started](https://github.com/roelofrossouw/simply-cpp/wiki/Getting-Started) for the whole suite.
 
 ## Usage
 
