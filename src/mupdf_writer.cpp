@@ -17,23 +17,12 @@
 
 // Each page is drawn through MuPDF's PDF device (pdf_page_write), which takes MuPDF's own y-down
 // page coordinates, so canvas coordinates go in as they are and the device writes PDF's y-up ones.
-// The pages, with their link annotations, are added to the document and saved by close(). MuPDF's
-// errors become sc::mupdf::error (fitz_call.h).
+// Colours' alpha goes to the device, which writes it as a graphics state (/ca, /CA). The pages,
+// with their link annotations, are added to the document and saved by close(). MuPDF's errors
+// become sc::mupdf::error (fitz_call.h).
 
 namespace sc::mupdf {
     namespace {
-        std::pair<double, double> dimensions(const page_size size) {
-            switch (size) {
-                case page_size::a5: return {420, 595};
-                case page_size::letter: return {612, 792};
-                case page_size::legal: return {612, 1008};
-                case page_size::a4: break;
-            }
-            return {595, 842};
-        }
-
-        // quarter_circle, the control point distance for a quarter circle, is sc-core's (path.h).
-
         struct rgb {
             float values[3];
 
@@ -41,7 +30,6 @@ namespace sc::mupdf {
                 : values{static_cast<float>(colour.red()), static_cast<float>(colour.green()), static_cast<float>(colour.blue())} {
             }
         };
-
 
         auto f(const double value) { return static_cast<float>(value); }
     }
@@ -65,8 +53,10 @@ namespace sc::mupdf {
         // One fz_font serves every size of a face: keyed by family, weight, italic and style.
         std::map<std::tuple<std::string, int, bool, std::string>, fz_font *> fonts;
 
-        impl(const std::filesystem::path &file, const page_size size) : filename(file.string()) {
-            std::tie(width, height) = dimensions(size);
+        impl(const std::filesystem::path &file, const page_size size, const orientation turned) : filename(file.string()) {
+            const auto page = page_dimensions(size, turned);
+            width = page.width();
+            height = page.height();
             context = fz_new_context(nullptr, nullptr, FZ_STORE_DEFAULT);
             if (!context) throw error{"MuPDF: could not create a context"};
             try {
@@ -141,14 +131,16 @@ namespace sc::mupdf {
                 const rgb fill_colour{fill.colour()}, stroke_colour{stroke.colour()};
                 detail::call(context, "sc::mupdf::writer", [&] {
                     build(shape);
-                    // Opaque, as sc::pdf paints them, so the files compare.
-                    if (fill_it) fz_fill_path(context, target, shape, even_odd, fz_identity, fz_device_rgb(context), fill_colour.values, 1, fz_default_color_params);
+                    if (fill_it)
+                        fz_fill_path(context, target, shape, even_odd, fz_identity, fz_device_rgb(context), fill_colour.values,
+                                     f(fill.colour().alpha()), fz_default_color_params);
                 });
                 if (stroke_it) {
                     detail::call(context, "sc::mupdf::writer", [&] { stroke_state = fz_new_stroke_state(context); });
                     stroke_state->linewidth = f(stroke.width());
                     detail::call(context, "sc::mupdf::writer", [&] {
-                        fz_stroke_path(context, target, shape, stroke_state, fz_identity, fz_device_rgb(context), stroke_colour.values, 1, fz_default_color_params);
+                        fz_stroke_path(context, target, shape, stroke_state, fz_identity, fz_device_rgb(context), stroke_colour.values,
+                                       f(stroke.colour().alpha()), fz_default_color_params);
                     });
                 }
             } catch (...) {
@@ -267,7 +259,8 @@ namespace sc::mupdf {
         }
     };
 
-    writer::writer(const std::filesystem::path &filename, const page_size size) : impl_(std::make_unique<impl>(filename, size)) {
+    writer::writer(const std::filesystem::path &filename, const page_size size, const orientation turned)
+        : impl_(std::make_unique<impl>(filename, size, turned)) {
     }
 
     writer::~writer() {
@@ -356,6 +349,7 @@ namespace sc::mupdf {
         });
     }
 
+    // quarter_circle, the control point distance for a quarter circle, is sc-core's (path.h).
     void writer::paint_circle(const circle &shape, const sc::stroke &stroke, const sc::fill &fill) {
         const double cx = shape.center().x(), cy = shape.center().y(), r = shape.radius(), k = r * quarter_circle;
         impl_->paint(stroke, fill, [&](fz_path *p) {
@@ -434,7 +428,8 @@ namespace sc::mupdf {
             const fz_matrix placement = fz_make_matrix(f(size), 0, 0, f(-size), f(sample.position.x()), f(sample.position.y()));
             detail::call(context, "sc::mupdf::writer: text", [&] {
                 fz_show_string(context, line, face, placement, sample.content.c_str(), 0, 0, FZ_BIDI_LTR, FZ_LANG_UNSET);
-                fz_fill_text(context, target, line, fz_identity, fz_device_rgb(context), paint.values, 1, fz_default_color_params);
+                fz_fill_text(context, target, line, fz_identity, fz_device_rgb(context), paint.values, f(fill.colour().alpha()),
+                             fz_default_color_params);
             });
         } catch (...) {
             fz_drop_text(context, line);

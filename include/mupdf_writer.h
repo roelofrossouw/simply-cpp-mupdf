@@ -4,6 +4,7 @@
 
 #include <canvas.h>
 #include <font.h>
+#include <page.h>
 #include <rect.h>
 #include <text.h>
 
@@ -12,22 +13,21 @@
 #include <string>
 
 namespace sc::mupdf {
-    // Page sizes, in points (1/72 inch): A4 595x842, A5 420x595, Letter 612x792, Legal 612x1008.
-    enum class page_size { a4, a5, letter, legal };
-
     // Writes a PDF file with MuPDF: pages of text, shapes, images, SVG drawings (canvas::draw(sc::svg,
     // rect)) and links. The same calls as sc-pdf's sc::pdf, which writes with PDFHummus, so the two
     // can be swapped and their files compared.
     //
     // An sc::canvas: shapes and text are drawn with its draw() calls, and text measured with its
     // text_width(), text_x_height() and text_cap_height(). Positions are in points from the page's
-    // top-left corner, y down. Fonts are found by sc-graphics' sc::font_face (fontconfig), as sc::pdf finds them, and
-    // embedded. Drawing goes to the current page, the newest unless set_page() moved back. The file
-    // is finished by close(), or by the destructor, which can't report a failure.
+    // top-left corner, y down. Fonts are found by sc-graphics' sc::font_face (fontconfig), as
+    // sc::pdf finds them, and embedded. Drawing goes to the current page, the newest unless
+    // set_page() moved back. The file is finished by close(), or by the destructor, which can't
+    // report a failure.
     class writer : public canvas {
     public:
-        // Starts the file, with one page; throws sc::mupdf::error when MuPDF can't.
-        explicit writer(const std::filesystem::path &filename, page_size size = page_size::a4);
+        // Starts the file with one page; every page has this size (sc-graphics' page.h), turned or
+        // not. Throws sc::mupdf::error when MuPDF can't.
+        explicit writer(const std::filesystem::path &filename, page_size size = page_size::a4, orientation turned = orientation::portrait);
 
         ~writer() override;
 
@@ -65,9 +65,9 @@ namespace sc::mupdf {
         void add_link(const std::string &url, const rect &pos);
 
     protected:
-        // Strokes are a colour and a width, fills a colour and a fill rule, all painted opaque as
-        // sc::pdf paints them, so the two files compare; other stroke and fill styles aren't drawn yet.
-        // Text throws std::runtime_error when fontconfig finds no font.
+        // Strokes are a colour and a width, fills a colour and a fill rule; a colour's alpha is its
+        // transparency, as in sc::pdf. Other stroke and fill styles aren't drawn yet. Text throws
+        // std::runtime_error when fontconfig finds no font.
         void paint_polygon(const polygon &shape, const sc::stroke &stroke, const sc::fill &fill) override;
 
         void paint_circle(const circle &shape, const sc::stroke &stroke, const sc::fill &fill) override;

@@ -19,7 +19,8 @@ struct fz_stext_line;
 // Reading PDFs (and the other formats MuPDF opens: XPS, EPUB, CBZ, images) with MuPDF: a document's
 // pages, each page's text as blocks of lines with their positions and fonts, and page images.
 //
-// MuPDF is AGPL-3.0, so this module is too; sc-pdf, the writer, stays Apache-2.0.
+// MuPDF is AGPL-3.0, so this module is too; sc-pdf (PDFHummus) is the Apache-2.0 writer. Writing
+// with MuPDF: mupdf_writer.h.
 //
 //     const sc::mupdf::document doc{"letter.pdf"};
 //     for (const auto page: doc.pages()) {

@@ -1,7 +1,8 @@
 // Writes a PDF with MuPDF: the same page as sc-pdf's sc-pdf-demo (which writes with PDFHummus),
 // call for call, so the two files can be compared. A heading, text measured to centre it, lines,
-// shapes, SVG drawings (curves, transforms, an even-odd hole, a clip path) and a link. Each line
-// shows a call, as written, and what it returned. --help lists the options.
+// shapes, SVG drawings (curves, transforms, an even-odd hole, a clip path), a link, and a path
+// placed in the bottom-right corner by its bounds(), with half- and three-quarter-opaque eyes. Each
+// line shows a call, as written, and what it returned. --help lists the options.
 
 #include <filesystem>
 #include <iostream>
@@ -19,7 +20,9 @@ int main(int argc, char **argv) {
         {"name", "sc-mupdf-write"},
         {"description", "Writes sc-pdf-demo's page with MuPDF instead of PDFHummus, so the two PDFs can be compared."},
         {"options", {
-            {"svg", {{"value", "FILE"}, {"help", "an SVG file to draw on a second page"}}}}},
+            {"size", {{"default", "a4"}, {"choices", {"a3", "a4", "letter", "legal"}}, {"help", "the paper"}}},
+            {"landscape", {{"type", "boolean"}, {"help", "turn the pages sideways"}}},
+            {"svg", {{"value", "FILE"}, {"help", "an SVG file to draw on a page of its own"}}}}},
         {"positional", {
             {"output", {{"default", (std::filesystem::temp_directory_path() / "sc-mupdf-write.pdf").string()},
                         {"help", "the PDF to write"}}}}}}};
@@ -27,14 +30,16 @@ int main(int argc, char **argv) {
     try {
         const std::filesystem::path output = args.as<std::string>("output");
         const std::filesystem::path svg_file = args.as<std::string>("svg", "");
-        sc::console::title("simply-cpp mupdf: text, shapes, SVG drawings and a link on an A4 page, written with MuPDF");
+        const auto paper = sc::page_size_from(args.as<std::string>("size"));
+        const auto turned = args.as<bool>("landscape") ? sc::orientation::landscape : sc::orientation::portrait;
+        sc::console::title("simply-cpp mupdf: text, shapes, SVG drawings, a link and a corner path, written with MuPDF");
         sc::timer sw;
 
         // [readme]
         sc::console::heading("Starting the file");
-        sc::mupdf::writer pdf{output};
-        sc::console::step("sc::mupdf::writer pdf{output};   // " + output.string());
-        SC_SHOW(pdf.page_width());  // points, 1/72 inch: A4 by default
+        sc::mupdf::writer pdf{output, paper, turned};
+        sc::console::step("sc::mupdf::writer pdf{output, paper, turned};   // " + output.string());
+        SC_SHOW(pdf.page_width());  // points, 1/72 inch: --size and --landscape
         SC_SHOW(pdf.page_height());
 
         sc::console::heading("Text: sc::text{content, where its baseline starts, sc::font}");
@@ -46,7 +51,7 @@ int main(int argc, char **argv) {
         SC_STEP(pdf.draw(centred, sc::color{0.2, 0.2, 0.6}));
 
         sc::console::heading("Lines and shapes: draw(geometry, stroke, fill)");
-        SC_STEP(pdf.draw(sc::line{{50, 165}, {545, 165}}, sc::stroke{sc::color::Black, 0.5}));
+        SC_STEP(pdf.draw(sc::line{{50, 165}, {pdf.page_width() - 50, 165}}, sc::stroke{sc::color::Black, 0.5}));
         const sc::rect box{50, 190, 230, 120};
         SC_STEP(pdf.draw(sc::rounded_rect{box, 12}, sc::stroke{sc::color{0.16, 0.44, 0.59}, 2}, sc::color{0.85, 0.93, 0.98})); // stroke, fill
         SC_STEP(pdf.draw(sc::text{"A rounded box", {70, 255}, {"sans-serif", 16}}));
@@ -61,6 +66,10 @@ int main(int argc, char **argv) {
                                 R"(<path d="M120 130 Q160 170 200 130" stroke="#2a6f97" stroke-width="8" fill="none"/></svg>)";
         SC_STEP(pdf.draw(sc::svg{svg}, sc::rect{315, 190, 230, 120})); // sc-graphics reads it into paths
 
+        sc::console::heading("A link");
+        SC_STEP(pdf.draw(sc::text{"github.com/roelofrossouw/simply-cpp", {50, 490}}, sc::color::Blue));
+        SC_STEP(pdf.add_link("https://github.com/roelofrossouw/simply-cpp", {50, 476, 220, 18}));
+
         sc::console::heading("More SVG: transforms, arcs with an even-odd hole, a clip path");
         const sc::svg star{R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">)svg"
                            R"svg(<g transform="rotate(15 50 50)"><polygon fill="#e76f51" stroke="#264653" stroke-width="3")svg"
@@ -72,19 +81,34 @@ int main(int argc, char **argv) {
                            R"svg(<defs><clipPath id="round"><circle cx="50" cy="50" r="45"/></clipPath></defs>)svg"
                            R"svg(<rect clip-path="url(#round)" width="100" height="50" fill="#e9c46a"/>)svg"
                            R"svg(<rect clip-path="url(#round)" y="50" width="100" height="50" fill="#264653"/></svg>)svg"};
-        double left_edge = 50;
+        double top = 530, left_edge = 50;
+        if (top + 300 > pdf.page_height()) { // a shorter page (landscape, Letter) has no room left: the frames go on the next
+            SC_STEP(pdf.new_page());
+            top = 50;
+        }
         for (const auto &[drawing, caption]: {std::pair{&star, "rotate(15)"}, std::pair{&ring, "evenodd"}, std::pair{&disc, "clip-path"}}) {
-            const sc::rect frame{left_edge, 530, 150, 150};
+            const sc::rect frame{left_edge, top, 150, 150};
             pdf.draw(frame, sc::stroke{sc::color{0.8, 0.8, 0.8}, 0.5});
             pdf.draw(*drawing, frame - 10); // 10 points inside the frame
-            pdf.draw(sc::text{caption, {left_edge, 698}, {"monospace", 10}});
+            pdf.draw(sc::text{caption, {left_edge, top + 168}, {"monospace", 10}});
             left_edge += 172.5;
         }
         sc::console::step("pdf.draw(star / ring / disc, frame - 10);   // three 150-point frames");
 
-        sc::console::heading("A link and finishing the file");
-        SC_STEP(pdf.draw(sc::text{"github.com/roelofrossouw/simply-cpp", {50, 490}}, sc::color::Blue));
-        SC_STEP(pdf.add_link("https://github.com/roelofrossouw/simply-cpp", {50, 476, 220, 18}));
+        sc::console::heading("A path in the bottom-right corner, placed by its bounds()");
+        // A face drawn round (0, 0), with a curl of hair whose control points reach higher than the
+        // curve does.
+        auto face = to_path(sc::circle{{0, 0}, 40});
+        face.move_to({-22, 12}).cubic_to({-10, 28}, {10, 28}, {22, 12});  // the smile
+        face.move_to({-8, -40}).cubic_to({-8, -60}, {8, -60}, {8, -40});  // the curl
+        SC_SHOW(face.bounds()); // exact: the curl's top is at -55, not its control points' -60
+        const sc::point corner{pdf.page_width() - 30, pdf.page_height() - 30};  // 30 points in from the corner
+        const sc::point offset = corner - face.bounds().right_bottom();         // moves the bounds' corner there
+        SC_STEP(pdf.draw(face.transformed(1, 1, offset), sc::stroke{sc::color::Black, 2}));
+        // Transparency is the colour's alpha: one eye half opaque, the other three-quarters.
+        SC_STEP(pdf.draw(sc::circle{offset + sc::point{-14, -10}, 6}, sc::stroke::none(), sc::color{0.15, 0.27, 0.33, 0.5}));
+        SC_STEP(pdf.draw(sc::circle{offset + sc::point{14, -10}, 6}, sc::stroke::none(), sc::color{0.15, 0.27, 0.33, 0.75}));
+        sc::console::heading("Finishing the file");
         if (!svg_file.empty()) {
             SC_STEP(pdf.new_page());
             const auto drawing = sc::svg::load(svg_file);

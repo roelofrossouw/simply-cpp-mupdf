@@ -66,8 +66,9 @@ opened, a wrong password, a damaged page. `document.page(n)` throws
 `std::out_of_range`. A document isn't thread-safe: use one per thread.
 
 MuPDF is found through Homebrew (`mupdf`) on macOS and Ubuntu's
-`libmupdf-dev` on Linux: 1.19 on jammy, 1.23 on noble, 1.27 on resolute.
-Only MuPDF calls that all of them have are used.
+`libmupdf-dev` on Linux: 1.19 on jammy, 1.23 on noble, 1.27 on resolute
+(Homebrew has 1.28). Only MuPDF calls that all of them have are used, bar font
+subsetting (below).
 
 ## Writing
 
@@ -79,9 +80,11 @@ same calls as [sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf)'s
 ```cpp
 #include <mupdf_writer.h>
 
-sc::mupdf::writer pdf{"letter.pdf"};                         // A4; sc::mupdf::page_size::letter etc.
+sc::mupdf::writer pdf{"letter.pdf"};                         // A4 portrait
+// sc::mupdf::writer pdf{"wide.pdf", sc::page_size::a3, sc::orientation::landscape};
 pdf.draw(sc::text{"Hello", {50, 80}, sc::font::bold("sans-serif", 24)});
 pdf.draw(sc::rounded_rect{sc::rect{50, 130, 200, 80}, 8}, sc::color::Black, sc::color{0.9, 0.95, 1});
+pdf.draw(sc::circle{{300, 80}, 20}, sc::stroke::none(), sc::color{0, 0, 0, 0.5}); // half transparent
 pdf.draw(sc::svg::load("logo.svg"), sc::rect{50, 230, 100, 100});
 pdf.draw_image("logo.png", {300, 130, 200, 80});
 pdf.add_link("https://example.com", {50, 30, 120, 25});
@@ -89,10 +92,15 @@ pdf.new_page();
 pdf.close();                                                 // or let the destructor finish it
 ```
 
+Page sizes are sc-graphics' `sc::page_size` (`a3`, `a4`, `a5`, `letter`,
+`legal`; `page.h`) and `sc::orientation` (`portrait`, `landscape`), as for
+`sc::pdf`; every page of a file has the same size.
+
 Fonts are found by sc-graphics' `sc::font_face` (fontconfig), the lookup every
 canvas shares, so both embed the same font files. Curves, rounded corners,
-even-odd fills and SVG clip paths stay vector graphics, and colours are
-painted opaque as in sc-pdf.
+even-odd fills and SVG clip paths stay vector graphics. A colour's alpha is
+its transparency, for fills, strokes and text, as in sc-pdf.
+
 With MuPDF 1.27 and later (resolute, Homebrew) only the glyphs used are
 embedded. Jammy's 1.19 and noble's 1.23 can't subset, so they embed whole
 fonts and their files are much larger. The files aren't byte-for-byte what
@@ -101,15 +109,24 @@ PDFHummus writes, but the pages look the same and read back the same text.
 
 ## Demos
 
-`sc-mupdf-write` writes sc-pdf's demo page, call for call, with MuPDF (the
-subtitle names the engine), to compare with `sc-pdf-demo`'s file:
-`sc-mupdf-write out.pdf`, `--svg FILE` for a second page, `--help`.
+```
+sc-mupdf-write [--size a4|a3|letter|legal] [--landscape] [--svg FILE] [OUTPUT]
+sc-mupdf-demo [--page N] [--scale S] [--png FILE] [-p PASSWORD] [FILE]
+```
 
-`sc-mupdf-demo` reads a small two-page PDF it makes itself, or the file
-given, and shows each call with what it returned: the pages, every line with
-its box, size and style, a page's text, and a page as a PNG (written to the
-temporary directory). It is installed with the runtime package
-(`simply-cpp-mupdf`):
+`sc-mupdf-write` writes sc-pdf's demo page, call for call, with MuPDF, to
+compare with `sc-pdf-demo`'s file: text, shapes, SVG drawings, a link, and a
+path placed in the bottom-right corner by its `bounds()`, with half- and
+three-quarter-opaque eyes. On a shorter page (landscape, Letter) the SVG
+frames go on a second page; `--svg FILE` adds a page with that drawing. The
+file goes to the temporary directory unless OUTPUT is given.
+
+`sc-mupdf-demo` reads a small two-page PDF it makes itself, or FILE, and
+shows each call with what it returned: the pages, every line with its box,
+size and style, the text of page N (default 1), and that page as a PNG at S
+pixels per point (default 2, 144 dpi; written to the temporary directory
+unless `--png` says where). Both take `--help`, and are installed with the
+runtime package (`simply-cpp-mupdf`):
 
 <!-- sc-example: examples/sc-mupdf-demo.cpp -->
 ```cpp
