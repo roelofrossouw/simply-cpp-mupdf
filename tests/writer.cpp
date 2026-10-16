@@ -1,6 +1,6 @@
 // Writes PDFs with sc::mupdf::writer into the temporary directory and reads them back with the
-// reader: pages and sizes, where text lands and how it measures, links, images, going back to an
-// earlier page, plus the mistakes that throw.
+// reader: pages and sizes (A3 landscape too), transparency, where text lands and how it measures,
+// links, images, going back to an earlier page, plus the mistakes that throw.
 #include "mupdf.h"
 #include "mupdf_writer.h"
 
@@ -50,7 +50,7 @@ int main() {
     SECTION("Pages, their size, and going back to an earlier page");
     const auto pages_file = directory / "pages.pdf";
     {
-        sc::mupdf::writer pdf{pages_file, sc::mupdf::page_size::letter};
+        sc::mupdf::writer pdf{pages_file, sc::page_size::letter};
         CHECK_EQ(pdf.page_width(), 612.0);
         CHECK_EQ(pdf.page_height(), 792.0);
         CHECK_EQ(pdf.page_count(), 1u);
@@ -73,6 +73,27 @@ int main() {
         CHECK_EQ(doc.page(0).text(), std::string{"First page\n\nAdded to the first afterwards"});
         CHECK_EQ(doc.page(1).text(), std::string{"Second page"});
         CHECK(doc.page(2).text().empty());
+    }
+    {
+        sc::mupdf::writer wide{directory / "a3-landscape.pdf", sc::page_size::a3, sc::orientation::landscape};
+        CHECK_EQ(wide.page_width(), 1191.0);
+        CHECK_EQ(wide.page_height(), 842.0);
+    }
+
+    SECTION("Transparency: a colour's alpha");
+    const auto alpha_file = directory / "alpha.pdf";
+    {
+        sc::mupdf::writer pdf{alpha_file};
+        pdf.draw(sc::circle{{100, 100}, 20}, sc::stroke::none(), sc::color{0, 0, 0, 0.5});
+        pdf.draw(sc::rect{50, 150, 100, 50}, sc::stroke{sc::color{1, 0, 0, 0.75}, 2});
+        pdf.draw(sc::text{"faint", {50, 250}}, sc::color{0, 0, 1, 0.25});
+    }
+    {
+        const auto bytes = read(alpha_file);
+        CHECK(contains(bytes, "/ExtGState"));
+        CHECK(contains(bytes, "/ca"));
+        CHECK(contains(bytes, "/CA"));
+        CHECK_EQ(sc::mupdf::document{alpha_file}.page(0).text(), std::string{"faint"});
     }
 
     SECTION("Text lands where it was drawn, y down, as wide as text_width() says");
