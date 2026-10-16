@@ -44,9 +44,6 @@ namespace sc::mupdf {
             }
         };
 
-        bool stroked(const color &stroke, const double width) { return stroke.alpha() > 0 && width > 0; }
-
-        bool filled(const color &fill) { return fill.alpha() > 0; }
 
         auto f(const double value) { return static_cast<float>(value); }
     }
@@ -131,17 +128,19 @@ namespace sc::mupdf {
             current = static_cast<unsigned>(pages.size() - 1);
         }
 
-        // A path built by build(fz_path *), filled and stroked: whichever of the two isn't left out.
+        // A path built by build(fz_path *), filled (by the fill's rule) and stroked: whichever of the
+        // two isn't none.
         template<typename Build>
-        void paint(const color &stroke, const color &fill, const double line_width, const bool even_odd, Build build) {
-            const bool stroke_it = stroked(stroke, line_width), fill_it = filled(fill);
+        void paint(const sc::stroke &stroke, const sc::fill &fill, Build build) {
+            const bool stroke_it = stroke.visible(), fill_it = fill.visible();
+            const bool even_odd = fill.rule() == fill_rule::even_odd;
             if (!stroke_it && !fill_it) return;
             fz_device *target = device();
             fz_path *shape = nullptr;
             detail::call(context, "sc::mupdf::writer", [&] { shape = fz_new_path(context); });
             fz_stroke_state *stroke_state = nullptr;
             try {
-                const rgb fill_colour{fill}, stroke_colour{stroke};
+                const rgb fill_colour{fill.colour()}, stroke_colour{stroke.colour()};
                 detail::call(context, "sc::mupdf::writer", [&] {
                     build(shape);
                     // Opaque, as sc::pdf paints them, so the files compare.
@@ -149,7 +148,7 @@ namespace sc::mupdf {
                 });
                 if (stroke_it) {
                     detail::call(context, "sc::mupdf::writer", [&] { stroke_state = fz_new_stroke_state(context); });
-                    stroke_state->linewidth = f(line_width);
+                    stroke_state->linewidth = f(stroke.width());
                     detail::call(context, "sc::mupdf::writer", [&] {
                         fz_stroke_path(context, target, shape, stroke_state, fz_identity, fz_device_rgb(context), stroke_colour.values, 1, fz_default_color_params);
                     });
@@ -347,8 +346,8 @@ namespace sc::mupdf {
         impl_->pages[impl_->current].links.emplace_back(url, pos);
     }
 
-    void writer::paint_polygon(const polygon &shape, const color &stroke, const color &fill, const double width) {
-        impl_->paint(stroke, fill, width, false, [&](fz_path *p) {
+    void writer::paint_polygon(const polygon &shape, const sc::stroke &stroke, const sc::fill &fill) {
+        impl_->paint(stroke, fill, [&](fz_path *p) {
             bool first = true;
             for (const auto &corner: shape) {
                 if (first) fz_moveto(impl_->context, p, f(corner.x()), f(corner.y()));
@@ -359,9 +358,9 @@ namespace sc::mupdf {
         });
     }
 
-    void writer::paint_circle(const circle &shape, const color &stroke, const color &fill, const double width) {
+    void writer::paint_circle(const circle &shape, const sc::stroke &stroke, const sc::fill &fill) {
         const double cx = shape.center().x(), cy = shape.center().y(), r = shape.radius(), k = r * quarter_circle;
-        impl_->paint(stroke, fill, width, false, [&](fz_path *p) {
+        impl_->paint(stroke, fill, [&](fz_path *p) {
             fz_context *c = impl_->context;
             fz_moveto(c, p, f(cx + r), f(cy));
             fz_curveto(c, p, f(cx + r), f(cy + k), f(cx + k), f(cy + r), f(cx), f(cy + r));
@@ -372,16 +371,18 @@ namespace sc::mupdf {
         });
     }
 
-    void writer::paint_line(const point &from, const point &to, const color &colour, const double width) {
-        impl_->paint(colour, color::Transparent, width, false, [&](fz_path *p) {
-            fz_moveto(impl_->context, p, f(from.x()), f(from.y()));
-            fz_lineto(impl_->context, p, f(to.x()), f(to.y()));
+    void writer::paint_line(const sc::line &shape, const sc::stroke &stroke) {
+        impl_->paint(stroke, sc::fill::none(), [&](fz_path *p) {
+            fz_moveto(impl_->context, p, f(shape.from().x()), f(shape.from().y()));
+            fz_lineto(impl_->context, p, f(shape.to().x()), f(shape.to().y()));
         });
     }
 
-    void writer::paint_rounded_rect(const rect &shape, const double radius, const color &stroke, const color &fill, const double width) {
-        const double l = shape.left(), t = shape.top(), r = shape.right(), b = shape.bottom(), k = radius * quarter_circle;
-        impl_->paint(stroke, fill, width, false, [&](fz_path *p) {
+    void writer::paint_rounded_rect(const rounded_rect &shape, const sc::stroke &stroke, const sc::fill &fill) {
+        const rect box = shape.rect();
+        const double radius = shape.radius();
+        const double l = box.left(), t = box.top(), r = box.right(), b = box.bottom(), k = radius * quarter_circle;
+        impl_->paint(stroke, fill, [&](fz_path *p) {
             fz_context *c = impl_->context;
             fz_moveto(c, p, f(l + radius), f(t));
             fz_lineto(c, p, f(r - radius), f(t));
@@ -396,8 +397,8 @@ namespace sc::mupdf {
         });
     }
 
-    void writer::paint_path(const path &shape, const color &stroke, const color &fill, const double width) {
-        impl_->paint(stroke, fill, width, shape.even_odd, [&](fz_path *p) { impl_->trace(p, shape); });
+    void writer::paint_path(const path &shape, const sc::stroke &stroke, const sc::fill &fill) {
+        impl_->paint(stroke, fill, [&](fz_path *p) { impl_->trace(p, shape); });
     }
 
     void writer::push_clip(const path &shape) {
@@ -408,7 +409,7 @@ namespace sc::mupdf {
         try {
             detail::call(context, "sc::mupdf::writer: a clip path", [&] {
                 impl_->trace(clip, shape);
-                fz_clip_path(context, target, clip, shape.even_odd, fz_identity, fz_infinite_rect);
+                fz_clip_path(context, target, clip, 0, fz_identity, fz_infinite_rect); // nonzero, as canvas::push_clip() clips
             });
         } catch (...) {
             fz_drop_path(context, clip);
@@ -422,14 +423,14 @@ namespace sc::mupdf {
         detail::call(impl_->context, "sc::mupdf::writer", [&] { fz_pop_clip(impl_->context, target); });
     }
 
-    void writer::paint_text(const text &sample, const color &colour) {
+    void writer::paint_text(const text &sample, const sc::fill &fill) {
         fz_device *target = impl_->device();
         fz_context *context = impl_->context;
         fz_font *face = impl_->font_for(sample.font);
         fz_text *line = nullptr;
         detail::call(context, "sc::mupdf::writer", [&] { line = fz_new_text(context); });
         try {
-            const rgb paint{colour};
+            const rgb paint{fill.colour()};
             const double size = sample.font.size;
             // Glyphs are y up, the page y down: the text matrix flips them upright at the baseline.
             const fz_matrix placement = fz_make_matrix(f(size), 0, 0, f(-size), f(sample.position.x()), f(sample.position.y()));

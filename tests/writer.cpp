@@ -116,10 +116,10 @@ int main() {
         // The image: a page of the text file drawn as a PNG by the reader.
         std::ofstream{image_file, std::ios::binary} << sc::mupdf::document{text_file}.page(0).png(0.5);
         sc::mupdf::writer pdf{drawing_file};
-        pdf.draw(sc::rect{50, 50, 200, 100}, sc::color::Black, sc::color{0.85, 0.93, 0.98}, 2, 12);
-        pdf.draw(sc::circle{{400, 100}, 40}, sc::color::Black, sc::color{0.96, 0.83, 0.37}, 2);
-        pdf.draw(sc::line{{50, 200}, {545, 200}}, sc::color::Black, 0.5);
-        pdf.draw(sc::polygon{{50, 300}, {100, 220}, {150, 300}}, sc::color::Red, sc::color::Transparent, 3);
+        pdf.draw(sc::rounded_rect{sc::rect{50, 50, 200, 100}, 12}, sc::stroke{sc::color::Black, 2}, sc::color{0.85, 0.93, 0.98});
+        pdf.draw(sc::circle{{400, 100}, 40}, sc::stroke{sc::color::Black, 2}, sc::color{0.96, 0.83, 0.37});
+        pdf.draw(sc::line{{50, 200}, {545, 200}}, sc::stroke{sc::color::Black, 0.5});
+        pdf.draw(sc::polygon{{50, 300}, {100, 220}, {150, 300}}, sc::stroke{sc::color::Red, 3});
         pdf.draw(sc::svg{R"svg(<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">)svg"
                          R"svg(<defs><clipPath id="c"><circle cx="50" cy="50" r="45"/></clipPath></defs>)svg"
                          R"svg(<rect clip-path="url(#c)" width="100" height="100" fill="#264653"/></svg>)svg"},

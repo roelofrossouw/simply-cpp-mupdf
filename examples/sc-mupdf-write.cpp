@@ -45,13 +45,13 @@ int main(int argc, char **argv) {
         centred.position.x((pdf.page_width() - pdf.text_width(centred)) / 2);
         SC_STEP(pdf.draw(centred, sc::color{0.2, 0.2, 0.6}));
 
-        sc::console::heading("Lines and shapes: draw(geometry, stroke, fill, width)");
-        SC_STEP(pdf.draw(sc::line{{50, 165}, {545, 165}}, sc::color::Black, 0.5));
+        sc::console::heading("Lines and shapes: draw(geometry, stroke, fill)");
+        SC_STEP(pdf.draw(sc::line{{50, 165}, {545, 165}}, sc::stroke{sc::color::Black, 0.5}));
         const sc::rect box{50, 190, 230, 120};
-        SC_STEP(pdf.draw(box, sc::color{0.16, 0.44, 0.59}, sc::color{0.85, 0.93, 0.98}, 2, 12)); // stroke, fill, width, radius
+        SC_STEP(pdf.draw(sc::rounded_rect{box, 12}, sc::stroke{sc::color{0.16, 0.44, 0.59}, 2}, sc::color{0.85, 0.93, 0.98})); // stroke, fill
         SC_STEP(pdf.draw(sc::text{"A rounded box", {70, 255}, {"sans-serif", 16}}));
-        SC_STEP(pdf.draw(sc::circle{{110, 400}, 40}, sc::color::Black, sc::color{0.96, 0.83, 0.37}, 2));
-        SC_STEP(pdf.draw(sc::polygon{{180, 440}, {230, 360}, {280, 440}}, sc::color{0.93, 0.42, 0.3}, sc::color::Transparent, 3));
+        SC_STEP(pdf.draw(sc::circle{{110, 400}, 40}, sc::stroke{sc::color::Black, 2}, sc::color{0.96, 0.83, 0.37}));
+        SC_STEP(pdf.draw(sc::polygon{{180, 440}, {230, 360}, {280, 440}}, sc::stroke{sc::color{0.93, 0.42, 0.3}, 3}));
         SC_STEP(pdf.draw(sc::rotated_rect{{380, 400}, {120, 50}, 20}, sc::color::Black, sc::color{0.85, 0.93, 0.98}));
 
         sc::console::heading("An SVG drawing, scaled to fit and centred");
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
         double left_edge = 50;
         for (const auto &[drawing, caption]: {std::pair{&star, "rotate(15)"}, std::pair{&ring, "evenodd"}, std::pair{&disc, "clip-path"}}) {
             const sc::rect frame{left_edge, 530, 150, 150};
-            pdf.draw(frame, sc::color{0.8, 0.8, 0.8}, sc::color::Transparent, 0.5);
+            pdf.draw(frame, sc::stroke{sc::color{0.8, 0.8, 0.8}, 0.5});
             pdf.draw(*drawing, frame - 10); // 10 points inside the frame
             pdf.draw(sc::text{caption, {left_edge, 698}, {"monospace", 10}});
             left_edge += 172.5;
