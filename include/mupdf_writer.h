@@ -1,0 +1,99 @@
+#pragma once
+
+#include "mupdf.h"
+
+#include <canvas.h>
+#include <font.h>
+#include <rect.h>
+#include <text.h>
+
+#include <filesystem>
+#include <memory>
+#include <string>
+
+namespace sc::mupdf {
+    // Page sizes, in points (1/72 inch): A4 595x842, A5 420x595, Letter 612x792, Legal 612x1008.
+    enum class page_size { a4, a5, letter, legal };
+
+    // Writes a PDF file with MuPDF: pages of text, shapes, images, SVG drawings (canvas::draw(sc::svg,
+    // rect)) and links. The same calls as sc-pdf's sc::pdf, which writes with PDFHummus, so the two
+    // can be swapped and their files compared.
+    //
+    // An sc::canvas: shapes and text are drawn with its draw() calls, and text measured with its
+    // text_width(), text_x_height() and text_cap_height(). Positions are in points from the page's
+    // top-left corner, y down. Fonts are found through fontconfig, as sc::pdf finds them, and
+    // embedded. Drawing goes to the current page, the newest unless set_page() moved back. The file
+    // is finished by close(), or by the destructor, which can't report a failure.
+    class writer : public canvas {
+    public:
+        // Starts the file, with one page; throws sc::mupdf::error when MuPDF can't.
+        explicit writer(const std::filesystem::path &filename, page_size size = page_size::a4);
+
+        ~writer() override;
+
+        writer(const writer &) = delete;
+
+        writer &operator=(const writer &) = delete;
+
+        writer(writer &&) noexcept;
+
+        writer &operator=(writer &&) noexcept;
+
+        // Writes out the pages and saves the file; throws sc::mupdf::error when that fails. Nothing
+        // can be drawn afterwards. Calling it again does nothing.
+        void close();
+
+        // Adds a page after the last one and makes it current.
+        void new_page();
+
+        // Makes page (counting from 1) current, adding pages up to it when there are fewer.
+        void set_page(unsigned page);
+
+        [[nodiscard]] unsigned page() const;
+
+        [[nodiscard]] unsigned page_count() const;
+
+        [[nodiscard]] double page_width() const;
+
+        [[nodiscard]] double page_height() const;
+
+        // An image file MuPDF reads (JPEG, PNG, TIFF, ...), scaled to fit pos with its aspect ratio
+        // kept and centred in it. Throws sc::mupdf::error when it can't be read.
+        void draw_image(const std::filesystem::path &filename, const rect &pos);
+
+        // Makes pos on the current page a link to url.
+        void add_link(const std::string &url, const rect &pos);
+
+    protected:
+        // Colours are painted opaque, as sc::pdf paints them, so the two files compare. Text throws
+        // std::runtime_error when fontconfig finds no font.
+        void paint_polygon(const polygon &shape, const color &stroke, const color &fill, double width) override;
+
+        void paint_circle(const circle &shape, const color &stroke, const color &fill, double width) override;
+
+        void paint_line(const point &from, const point &to, const color &colour, double width) override;
+
+        void paint_text(const text &sample, const color &colour) override;
+
+        // In points, from the font's glyphs: the advances, and the height of x and H above the
+        // baseline.
+        double measure_width(const text &sample) override;
+
+        double measure_x_height(const font &font) override;
+
+        double measure_cap_height(const font &font) override;
+
+        // Real curves, and clipping (so SVG clip paths work).
+        void paint_rounded_rect(const rect &shape, double radius, const color &stroke, const color &fill, double width) override;
+
+        void paint_path(const path &shape, const color &stroke, const color &fill, double width) override;
+
+        void push_clip(const path &shape) override;
+
+        void pop_clip() override;
+
+    private:
+        struct impl;
+        std::unique_ptr<impl> impl_;
+    };
+}

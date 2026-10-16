@@ -1,8 +1,10 @@
 # simply-cpp-mupdf
 
-C++20 PDF reader on [MuPDF](https://mupdf.com/): a document's pages, each
-page's text as blocks of lines with their positions and fonts, and pages
-drawn as PNG images. MuPDF also opens XPS, EPUB, CBZ and images.
+C++20 PDF reader and writer on [MuPDF](https://mupdf.com/): a document's
+pages, each page's text as blocks of lines with their positions and fonts, and
+pages drawn as PNG images; and PDFs written with the same calls as sc-pdf's
+`sc::pdf`, so the two engines can be swapped and compared. MuPDF also opens
+XPS, EPUB, CBZ and images.
 
 **License: AGPL-3.0**, because MuPDF is (or a commercial license from
 [Artifex](https://artifex.com/licensing/)). A program that links this module
@@ -58,7 +60,40 @@ MuPDF is found through Homebrew (`mupdf`) on macOS and Ubuntu's
 `libmupdf-dev` on Linux: 1.19 on jammy, 1.23 on noble, 1.27 on resolute.
 Only MuPDF calls that all of them have are used.
 
-## Demo
+## Writing
+
+`sc::mupdf::writer` (`mupdf_writer.h`) is an `sc::canvas` from
+[sc-graphics](https://github.com/roelofrossouw/simply-cpp-graphics) with the
+same calls as [sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf)'s
+`sc::pdf`, so a program can switch between the two by changing the class:
+
+```cpp
+#include <mupdf_writer.h>
+
+sc::mupdf::writer pdf{"letter.pdf"};                         // A4; sc::mupdf::page_size::letter etc.
+pdf.draw(sc::text{"Hello", {50, 80}, sc::font::bold("sans-serif", 24)});
+pdf.draw(sc::rect{50, 130, 200, 80}, sc::color::Black, sc::color{0.9, 0.95, 1}, 1, 8);
+pdf.draw(sc::svg::load("logo.svg"), sc::rect{50, 230, 100, 100});
+pdf.draw_image("logo.png", {300, 130, 200, 80});
+pdf.add_link("https://example.com", {50, 30, 120, 25});
+pdf.new_page();
+pdf.close();                                                 // or let the destructor finish it
+```
+
+Fonts are found through fontconfig, the same lookup sc-pdf uses, so both
+embed the same font files. Curves, rounded corners, even-odd fills and SVG
+clip paths stay vector graphics, and colours are painted opaque as in sc-pdf.
+With MuPDF 1.27 and later (resolute, Homebrew) only the glyphs used are
+embedded. Jammy's 1.19 and noble's 1.23 can't subset, so they embed whole
+fonts and their files are much larger. The files aren't byte-for-byte what
+PDFHummus writes, but the pages look the same and read back the same text.
+`close()` throws `sc::mupdf::error` when the file can't be saved.
+
+## Demos
+
+`sc-mupdf-write` writes sc-pdf's demo page, call for call, with MuPDF (the
+subtitle names the engine), to compare with `sc-pdf-demo`'s file:
+`sc-mupdf-write out.pdf`, `--svg FILE` for a second page, `--help`.
 
 `sc-mupdf-demo` reads a small two-page PDF it makes itself, or the file
 given, and shows each call with what it returned: the pages, every line with

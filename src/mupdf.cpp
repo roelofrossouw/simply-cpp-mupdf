@@ -2,29 +2,16 @@
 
 #include <utf8.h>
 
-#include <mupdf/fitz.h>
+#include "fitz_call.h"
 
 #include <algorithm>
 #include <cctype>
 #include <map>
 
-// MuPDF reports errors by longjmp out of fz_try (setjmp): nothing with a destructor may live inside
-// a fz_try block, or be changed there and read in fz_catch. So the blocks only call MuPDF and keep
-// raw pointers; a failure is thrown as sc::mupdf::error once the block is left. Only calls that are
-// in MuPDF 1.19 (Ubuntu jammy) to 1.28 (Homebrew) are used.
+// MuPDF's error handling (fz_try, longjmp) and the versions used: see fitz_call.h.
 
 namespace sc::mupdf {
-    namespace {
-        // A caught error's message. MuPDF 1.24 and later also want it marked as dealt with, or they
-        // print "UNHANDLED EXCEPTION!"; 1.19 and 1.23 don't have that.
-        std::string caught(fz_context *context) {
-            std::string message = fz_caught_message(context);
-#if FZ_VERSION_MAJOR > 1 || FZ_VERSION_MINOR >= 24
-            fz_ignore_error(context);
-#endif
-            return message;
-        }
-    }
+    using detail::caught;
 
     // The document's MuPDF state, shared by every page handle and block range made from it.
     struct page::state {
@@ -37,7 +24,7 @@ namespace sc::mupdf {
             context = fz_new_context(nullptr, nullptr, FZ_STORE_DEFAULT);
             if (!context) throw error{"MuPDF: could not create a context"};
             std::string failure;
-        bool failed = false;
+            bool failed = false;
             fz_try(context) {
                 fz_register_document_handlers(context);
             }
@@ -63,18 +50,7 @@ namespace sc::mupdf {
 
         // Runs MuPDF calls, throwing what they reported.
         template<typename F>
-        void run(const std::string_view what, F &&calls) const {
-            std::string failure;
-        bool failed = false;
-            fz_try(context) {
-                calls();
-            }
-            fz_catch(context) {
-                failed = true;
-                failure = caught(context);
-            }
-            if (failed) throw error{std::string{what} + ": " + failure};
-        }
+        void run(const std::string_view what, F &&calls) const { detail::call(context, what, std::forward<F>(calls)); }
 
         // After opening: the password, if one is needed, and the page count.
         void opened(const std::string_view name, const std::string_view password) {
@@ -266,7 +242,8 @@ namespace sc::mupdf {
         text->document = document_;
         fz_stext_page *raw = nullptr;
         document_->run("page " + std::to_string(number()), [&] {
-            fz_stext_options options{}; // MuPDF's defaults: ligatures expanded, whitespace normalised
+            fz_stext_options options{}; // MuPDF's defaults (ligatures expanded, whitespace normalised),
+            options.flags = FZ_STEXT_PRESERVE_IMAGES; // plus the image blocks, left out otherwise
             raw = fz_new_stext_page_from_page(document_->context, p, &options);
         });
         text->text = raw;
