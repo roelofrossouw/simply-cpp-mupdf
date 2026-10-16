@@ -69,10 +69,15 @@ temporary directory). It is installed with the runtime package
 <!-- sc-example: examples/sc-mupdf-demo.cpp -->
 ```cpp
 sc::console::heading("Opening the document");
-const auto doc = argc > 1 ? sc::mupdf::document{argv[1]} : sc::mupdf::document::from_memory(sample_pdf::make());
-sc::console::step(argc > 1 ? std::string{"sc::mupdf::document doc{\""} + argv[1] + "\"};"
-                           : "auto doc = sc::mupdf::document::from_memory(pdf_bytes);   // the sample PDF");
+const auto *file = args.lookup("file");
+const auto doc = file ? sc::mupdf::document{file->get<std::string>(), password}
+                      : sc::mupdf::document::from_memory(sample_pdf::make());
+sc::console::step(file ? "sc::mupdf::document doc{\"" + file->get<std::string>() + "\"};"
+                       : std::string{"auto doc = sc::mupdf::document::from_memory(pdf_bytes);   // the sample PDF"});
 SC_SHOW(doc.page_count());
+if (page_number < 1 || page_number > doc.page_count()) {
+    throw std::out_of_range{"--page " + std::to_string(page_number) + ": the document has " + std::to_string(doc.page_count()) + " pages"};
+}
 SC_SHOW(doc.metadata("Title"));
 SC_SHOW(doc.metadata("format"));
 
@@ -88,13 +93,12 @@ for (const auto page: doc.pages()) {
 }
 
 sc::console::heading("All of a page's text");
-const auto first = doc.page(0);
-SC_SHOW(first.text());
+const auto page = doc.page(page_number - 1); // 0-based; --page counts from 1
+SC_SHOW(page.text());
 
 sc::console::heading("A page drawn as a PNG");
-const auto png = first.png(2); // 2 pixels per point: 144 dpi
+const auto png = page.png(scale); // pixels per point: 2 is 144 dpi
 SC_SHOW(png.size());
-const auto file = std::filesystem::temp_directory_path() / "sc-mupdf-demo.png";
-std::ofstream{file, std::ios::binary} << png;
+std::ofstream{png_file, std::ios::binary} << png;
 ```
 <!-- /sc-example -->
