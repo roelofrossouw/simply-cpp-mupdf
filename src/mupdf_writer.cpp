@@ -119,7 +119,9 @@ namespace sc::mupdf {
         // A path built by build(fz_path *), filled (by the fill's rule) and stroked: whichever of the
         // two isn't none.
         template<typename Build>
-        void paint(const sc::stroke &stroke, const sc::fill &fill, Build build) {
+        void paint(const sc::appearance &look, Build build) {
+            const auto &stroke = look.stroke();
+            const auto &fill = look.fill();
             const bool stroke_it = stroke.visible(), fill_it = fill.visible();
             const bool even_odd = fill.rule() == fill_rule::even_odd;
             if (!stroke_it && !fill_it) return;
@@ -337,8 +339,8 @@ namespace sc::mupdf {
         impl_->pages[impl_->current].links.emplace_back(url, pos);
     }
 
-    void writer::paint_polygon(const polygon &shape, const sc::stroke &stroke, const sc::fill &fill) {
-        impl_->paint(stroke, fill, [&](fz_path *p) {
+    void writer::paint_polygon(const polygon &shape, const sc::appearance &look) {
+        impl_->paint(look, [&](fz_path *p) {
             bool first = true;
             for (const auto &corner: shape) {
                 if (first) fz_moveto(impl_->context, p, f(corner.x()), f(corner.y()));
@@ -350,9 +352,9 @@ namespace sc::mupdf {
     }
 
     // quarter_circle, the control point distance for a quarter circle, is sc-core's (path.h).
-    void writer::paint_circle(const circle &shape, const sc::stroke &stroke, const sc::fill &fill) {
+    void writer::paint_circle(const circle &shape, const sc::appearance &look) {
         const double cx = shape.center().x(), cy = shape.center().y(), r = shape.radius(), k = r * quarter_circle;
-        impl_->paint(stroke, fill, [&](fz_path *p) {
+        impl_->paint(look, [&](fz_path *p) {
             fz_context *c = impl_->context;
             fz_moveto(c, p, f(cx + r), f(cy));
             fz_curveto(c, p, f(cx + r), f(cy + k), f(cx + k), f(cy + r), f(cx), f(cy + r));
@@ -364,17 +366,17 @@ namespace sc::mupdf {
     }
 
     void writer::paint_line(const sc::line &shape, const sc::stroke &stroke) {
-        impl_->paint(stroke, sc::fill::none(), [&](fz_path *p) {
+        impl_->paint(stroke, [&](fz_path *p) {
             fz_moveto(impl_->context, p, f(shape.from().x()), f(shape.from().y()));
             fz_lineto(impl_->context, p, f(shape.to().x()), f(shape.to().y()));
         });
     }
 
-    void writer::paint_rounded_rect(const rounded_rect &shape, const sc::stroke &stroke, const sc::fill &fill) {
+    void writer::paint_rounded_rect(const rounded_rect &shape, const sc::appearance &look) {
         const rect box = shape.rect();
         const double radius = shape.radius();
         const double l = box.left(), t = box.top(), r = box.right(), b = box.bottom(), k = radius * quarter_circle;
-        impl_->paint(stroke, fill, [&](fz_path *p) {
+        impl_->paint(look, [&](fz_path *p) {
             fz_context *c = impl_->context;
             fz_moveto(c, p, f(l + radius), f(t));
             fz_lineto(c, p, f(r - radius), f(t));
@@ -389,8 +391,8 @@ namespace sc::mupdf {
         });
     }
 
-    void writer::paint_path(const path &shape, const sc::stroke &stroke, const sc::fill &fill) {
-        impl_->paint(stroke, fill, [&](fz_path *p) { impl_->trace(p, shape); });
+    void writer::paint_path(const path &shape, const sc::appearance &look) {
+        impl_->paint(look, [&](fz_path *p) { impl_->trace(p, shape); });
     }
 
     void writer::push_clip(const path &shape) {

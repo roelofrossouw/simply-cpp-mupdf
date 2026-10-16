@@ -68,9 +68,9 @@ namespace sc::mupdf {
         // Strokes are a colour and a width, fills a colour and a fill rule; a colour's alpha is its
         // transparency, as in sc::pdf. Other stroke and fill styles aren't drawn yet. Text throws
         // std::runtime_error when fontconfig finds no font.
-        void paint_polygon(const polygon &shape, const sc::stroke &stroke, const sc::fill &fill) override;
+        void paint_polygon(const polygon &shape, const sc::appearance &look) override;
 
-        void paint_circle(const circle &shape, const sc::stroke &stroke, const sc::fill &fill) override;
+        void paint_circle(const circle &shape, const sc::appearance &look) override;
 
         void paint_line(const sc::line &shape, const sc::stroke &stroke) override; // sc::line: in here, line is the reader's
 
@@ -85,9 +85,9 @@ namespace sc::mupdf {
         double measure_cap_height(const font &font) override;
 
         // Real curves, and clipping (so SVG clip paths work).
-        void paint_rounded_rect(const rounded_rect &shape, const sc::stroke &stroke, const sc::fill &fill) override;
+        void paint_rounded_rect(const rounded_rect &shape, const sc::appearance &look) override;
 
-        void paint_path(const path &shape, const sc::stroke &stroke, const sc::fill &fill) override;
+        void paint_path(const path &shape, const sc::appearance &look) override;
 
         void push_clip(const path &shape) override;
 
