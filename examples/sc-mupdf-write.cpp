@@ -1,7 +1,7 @@
 // Writes a PDF with MuPDF: the same page as sc-pdf's sc-pdf-demo (which writes with PDFHummus),
 // call for call, so the two files can be compared. A heading, text measured to centre it, lines,
 // shapes, SVG drawings (curves, transforms, an even-odd hole, a clip path), a half-transparent
-// circle over the boxes, a link, and a rubber-band path placed in the bottom-right corner by its
+// circle over the boxes, a link, and a race track path placed in the bottom-right corner by its
 // bounds(). Each line shows a call, as written, and what it returned. --help lists the options.
 
 #include <filesystem>
@@ -100,21 +100,32 @@ int main(int argc, char **argv) {
         sc::console::step("pdf.draw(star / ring / disc, frame - 10);   // three 150-point frames");
 
         sc::console::heading("A path in the bottom-right corner, placed by its bounds()");
-        // A rubber band pinched round two pegs, tilted: its curves' control points reach well past
-        // the curves themselves, so the box round them isn't the band's. bounds() is the band's own.
-        sc::path band;
-        band.move_to({0, 40})
-            .cubic_to({0, -10}, {50, -10}, {60, 20})    // over the left peg
-            .cubic_to({70, -10}, {120, -10}, {120, 40}) // over the right peg
-            .cubic_to({120, 90}, {70, 90}, {60, 60})    // under it
-            .cubic_to({50, 90}, {0, 90}, {0, 40})       // and back
+        // The Nurburgring's Nordschleife, roughly: one smooth curve through its corners, from
+        // Hatzenbach up to the Flugplatz, out to Brunnchen and back down the Dottinger Hohe. Where
+        // its curves bend furthest isn't at any of their points, so bounds() finds the extremes.
+        sc::path track;
+        track.move_to({20, 70})
+            .cubic_to({20.8, 62.8}, {24.2, 51.7}, {30, 45})     // Hatzenbach
+            .cubic_to({35.8, 38.3}, {48.3, 35.8}, {55, 30})
+            .cubic_to({61.7, 24.2}, {63.3, 12.5}, {70, 10})     // Flugplatz
+            .cubic_to({76.7, 7.5}, {88.3, 10}, {95, 15})        // Adenauer Forst
+            .cubic_to({101.7, 20}, {105, 32.5}, {110, 40})
+            .cubic_to({115, 47.5}, {119.2, 59.2}, {125, 60})    // Bergwerk
+            .cubic_to({130.8, 60.8}, {137.5, 49.2}, {145, 45})  // Karussell
+            .cubic_to({152.5, 40.8}, {162.5, 34.2}, {170, 35})  // Hohe Acht
+            .cubic_to({177.5, 35.8}, {187.5, 43.3}, {190, 50})  // Brunnchen
+            .cubic_to({192.5, 56.7}, {189.2, 69.2}, {185, 75})  // Pflanzgarten
+            .cubic_to({180.8, 80.8}, {177.5, 81.7}, {165, 85})
+            .cubic_to({152.5, 88.3}, {129.2, 93.3}, {110, 95})  // Dottinger Hohe
+            .cubic_to({90.8, 96.7}, {64.2, 96.2}, {50, 95})
+            .cubic_to({35.8, 93.8}, {30, 92.2}, {25, 88})       // Tiergarten
+            .cubic_to({20, 83.8}, {19.2, 77.2}, {20, 70})
             .close();
-        band = sc::transform::rotate(-15).apply(band);
-        SC_SHOW(band.bounds()); // the band's top, bottom and sides, not its control points'
-        const sc::point corner{pdf.page_width() - 30, pdf.page_height() - 30};    // 30 points in from the corner
-        band = sc::transform::translate(corner - band.bounds().right_bottom()).apply(band);
-        SC_STEP(pdf.draw(band.bounds(), sc::stroke{sc::color{0.6, 0.6, 0.6}, 0.5})); // its bounds, touching it all round
-        SC_STEP(pdf.draw(band, {sc::stroke{sc::color{0.55, 0.27, 0.07}, 2}, sc::color{0.96, 0.64, 0.38}}));
+        SC_SHOW(track.bounds()); // the track's own extremes
+        const sc::point corner{pdf.page_width() - 8, pdf.page_height() - 8}; // 8 points in from the corner
+        track = sc::transform::translate(corner - track.bounds().right_bottom()).apply(track);
+        SC_STEP(pdf.draw(track.bounds(), sc::stroke{sc::color{0.6, 0.6, 0.6}, 0.5})); // its bounds: the line's centre touches it all round
+        SC_STEP(pdf.draw(track, sc::stroke{sc::color::Black, 4}));                    // no fill
 
         sc::console::heading("Finishing the file");
         if (!svg_file.empty()) {

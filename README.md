@@ -116,7 +116,7 @@ sc-mupdf-demo [--page N] [--scale S] [--png FILE] [-p PASSWORD] [FILE]
 
 `sc-mupdf-write` writes sc-pdf's demo page, call for call, with MuPDF, to
 compare with `sc-pdf-demo`'s file: text, shapes, SVG drawings, a
-half-transparent circle over the top boxes, a link, and a rubber-band path
+half-transparent circle over the top boxes, a link, and a race track path
 placed in the bottom-right corner by its exact `bounds()`. On a shorter page (landscape, Letter) the SVG
 frames go on a second page; `--svg FILE` adds a page with that drawing. The
 file goes to the temporary directory unless OUTPUT is given.
