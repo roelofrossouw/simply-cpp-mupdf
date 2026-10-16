@@ -21,7 +21,7 @@ namespace sc::mupdf {
     //
     // An sc::canvas: shapes and text are drawn with its draw() calls, and text measured with its
     // text_width(), text_x_height() and text_cap_height(). Positions are in points from the page's
-    // top-left corner, y down. Fonts are found through fontconfig, as sc::pdf finds them, and
+    // top-left corner, y down. Fonts are found by sc-graphics' sc::font_face (fontconfig), as sc::pdf finds them, and
     // embedded. Drawing goes to the current page, the newest unless set_page() moved back. The file
     // is finished by close(), or by the destructor, which can't report a failure.
     class writer : public canvas {

@@ -10,33 +10,22 @@ message(STATUS "SimplyCPP ${SC_MODULE} Version: ${SC_VERSION}")
 
 find_or_install_package(sc-core simply-cpp-dev simply-cpp 1.7.0)
 # sc::canvas, which the writer implements, and sc::svg.
-find_or_install_package(sc-graphics simply-cpp-graphics-dev simply-cpp-graphics 1.0.1)
+find_or_install_package(sc-graphics simply-cpp-graphics-dev simply-cpp-graphics 1.1.0)
 # MuPDF has no CMake package: cmake/Findmupdf.cmake finds it (Homebrew's, or Ubuntu's libmupdf-dev:
 # static on jammy and noble, shared on resolute).
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_or_install_package(mupdf libmupdf-dev mupdf)
-# The writer finds fonts as sc-pdf does. Through pkg-config, linked by path, so the exported
-# targets don't need pkg-config.
-config_or_install_package(fontconfig libfontconfig-dev fontconfig)
-foreach (library fontconfig)
-    string(TOUPPER "SC_MUPDF_${library}_LIBRARY" cached)
-    if (${cached} AND NOT EXISTS "${${cached}}")
-        message(STATUS "${library}: the cached library location is gone, looking again")
-        unset(${cached} CACHE)
-    endif ()
-    find_library(${cached} NAMES ${library} HINTS ${${library}_LIBRARY_DIRS} REQUIRED)
-endforeach ()
 
 set(SOURCE_OBJECTS)
 set(SOURCE_LIBRARIES)
 set(SOURCE_LINK_LIBRARIES)
 
-# MuPDF and fontconfig stay out of the installed headers; mupdf.h only names MuPDF's types.
+# MuPDF stays out of the installed headers (fonts are found by sc-graphics' sc::font_face); mupdf.h only names MuPDF's types.
 add_sc_object(mupdf
-        SOURCES src/mupdf_writer.cpp include/mupdf_writer.h src/fitz_call.h src/font_file.cpp src/font_file.h
+        SOURCES src/mupdf_writer.cpp include/mupdf_writer.h src/fitz_call.h
         INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src
-        LINK_LIBRARIES sc::sc-core sc::sc-graphics mupdf::mupdf PkgConfig::fontconfig
-        PUBLIC_LINK_LIBRARIES sc::sc-core sc::sc-graphics mupdf::mupdf ${SC_MUPDF_FONTCONFIG_LIBRARY})
+        LINK_LIBRARIES sc::sc-core sc::sc-graphics mupdf::mupdf
+        PUBLIC_LINK_LIBRARIES sc::sc-core sc::sc-graphics mupdf::mupdf)
 
 # Newer MuPDFs (resolute's 1.27, Homebrew's) can embed only the glyphs a PDF uses; jammy's 1.19
 # and noble's 1.23 embed whole fonts.
@@ -70,5 +59,5 @@ add_sc_example(sc-mupdf-write)
 # dpkg-shlibdeps. A consumer links the static library too, so the -dev package brings MuPDF's
 # headers and, for jammy's and noble's static libmupdf, the -dev packages of what it needs.
 package_sc_module(
-        DEV_DEPENDS "simply-cpp-dev (>= 1.7.0~)" "simply-cpp-graphics-dev (>= 1.0.1~)" libfontconfig-dev libmupdf-dev libmujs-dev libgumbo-dev libharfbuzz-dev
+        DEV_DEPENDS "simply-cpp-dev (>= 1.7.0~)" "simply-cpp-graphics-dev (>= 1.1.0~)" libmupdf-dev libmujs-dev libgumbo-dev libharfbuzz-dev
         libfreetype-dev libjbig2dec0-dev libopenjp2-7-dev libjpeg-dev zlib1g-dev)
