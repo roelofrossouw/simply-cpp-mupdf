@@ -50,14 +50,14 @@ int main(int argc, char **argv) {
         centred.position.x((pdf.page_width() - pdf.text_width(centred)) / 2);
         SC_STEP(pdf.draw(centred, sc::color{0.2, 0.2, 0.6}));
 
-        sc::console::heading("Lines and shapes: draw(geometry, stroke, fill)");
+        sc::console::heading("Lines and shapes: draw(geometry, appearance)");
         SC_STEP(pdf.draw(sc::line{{50, 165}, {pdf.page_width() - 50, 165}}, sc::stroke{sc::color::Black, 0.5}));
         const sc::rect box{50, 190, 230, 120};
-        SC_STEP(pdf.draw(sc::rounded_rect{box, 12}, sc::stroke{sc::color{0.16, 0.44, 0.59}, 2}, sc::color{0.85, 0.93, 0.98})); // stroke, fill
+        SC_STEP(pdf.draw(sc::rounded_rect{box, 12}, {sc::stroke{sc::color{0.16, 0.44, 0.59}, 2}, sc::color{0.85, 0.93, 0.98}})); // stroke, fill
         SC_STEP(pdf.draw(sc::text{"A rounded box", {70, 255}, {"sans-serif", 16}}));
-        SC_STEP(pdf.draw(sc::circle{{110, 400}, 40}, sc::stroke{sc::color::Black, 2}, sc::color{0.96, 0.83, 0.37}));
+        SC_STEP(pdf.draw(sc::circle{{110, 400}, 40}, {sc::stroke{sc::color::Black, 2}, sc::color{0.96, 0.83, 0.37}}));
         SC_STEP(pdf.draw(sc::polygon{{180, 440}, {230, 360}, {280, 440}}, sc::stroke{sc::color{0.93, 0.42, 0.3}, 3}));
-        SC_STEP(pdf.draw(sc::rotated_rect{{380, 400}, {120, 50}, 20}, sc::color::Black, sc::color{0.85, 0.93, 0.98}));
+        SC_STEP(pdf.draw(sc::rotated_rect{{380, 400}, {120, 50}, 20}, {sc::color::Black, sc::color{0.85, 0.93, 0.98}}));
 
         sc::console::heading("An SVG drawing, scaled to fit and centred");
         const std::string svg = R"(<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200">)"
@@ -106,8 +106,8 @@ int main(int argc, char **argv) {
         const sc::point offset = corner - face.bounds().right_bottom();         // moves the bounds' corner there
         SC_STEP(pdf.draw(face.transformed(1, 1, offset), sc::stroke{sc::color::Black, 2}));
         // Transparency is the colour's alpha: one eye half opaque, the other three-quarters.
-        SC_STEP(pdf.draw(sc::circle{offset + sc::point{-14, -10}, 6}, sc::stroke::none(), sc::color{0.15, 0.27, 0.33, 0.5}));
-        SC_STEP(pdf.draw(sc::circle{offset + sc::point{14, -10}, 6}, sc::stroke::none(), sc::color{0.15, 0.27, 0.33, 0.75}));
+        SC_STEP(pdf.draw(sc::circle{offset + sc::point{-14, -10}, 6}, sc::appearance::filled(sc::color{0.15, 0.27, 0.33, 0.5})));
+        SC_STEP(pdf.draw(sc::circle{offset + sc::point{14, -10}, 6}, sc::appearance::filled(sc::color{0.15, 0.27, 0.33, 0.75})));
         sc::console::heading("Finishing the file");
         if (!svg_file.empty()) {
             SC_STEP(pdf.new_page());
