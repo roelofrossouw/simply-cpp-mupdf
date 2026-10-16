@@ -81,7 +81,7 @@ same calls as [sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf)'s
 
 sc::mupdf::writer pdf{"letter.pdf"};                         // A4; sc::mupdf::page_size::letter etc.
 pdf.draw(sc::text{"Hello", {50, 80}, sc::font::bold("sans-serif", 24)});
-pdf.draw(sc::rect{50, 130, 200, 80}, sc::color::Black, sc::color{0.9, 0.95, 1}, 1, 8);
+pdf.draw(sc::rounded_rect{sc::rect{50, 130, 200, 80}, 8}, sc::color::Black, sc::color{0.9, 0.95, 1});
 pdf.draw(sc::svg::load("logo.svg"), sc::rect{50, 230, 100, 100});
 pdf.draw_image("logo.png", {300, 130, 200, 80});
 pdf.add_link("https://example.com", {50, 30, 120, 25});
