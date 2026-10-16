@@ -55,7 +55,7 @@ int main() {
     CHECK_EQ(document.metadata("Title"), std::string{"simply-cpp mupdf sample"});
     CHECK_EQ(document.metadata("Author"), std::string{"simply-cpp"});
     CHECK(document.metadata("format").starts_with("PDF"));
-    CHECK(document.metadata("Keywords").empty()); // not set
+    CHECK(document.metadata("Keywords").empty());
 
     SECTION("Iterating the pages, more than once and at the same time");
     {

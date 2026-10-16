@@ -48,7 +48,6 @@ namespace sc::mupdf {
 
         state &operator=(const state &) = delete;
 
-        // Runs MuPDF calls, throwing what they reported.
         template<typename F>
         void run(const std::string_view what, F &&calls) const { detail::call(context, what, std::forward<F>(calls)); }
 
