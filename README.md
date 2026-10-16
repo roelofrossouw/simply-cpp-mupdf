@@ -80,7 +80,7 @@ same calls as [sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf)'s
 ```cpp
 #include <mupdf_writer.h>
 
-sc::mupdf::writer pdf{"letter.pdf"};                         // A4 portrait
+sc::mupdf::writer pdf{"hello.pdf"};                          // A4 portrait
 // sc::mupdf::writer pdf{"wide.pdf", sc::page_size::a3, sc::orientation::landscape};
 pdf.draw(sc::text{"Hello", {50, 80}, sc::font::bold("sans-serif", 24)});
 pdf.draw(sc::rounded_rect{sc::rect{50, 130, 200, 80}, 8}, {sc::color::Black, sc::color{0.9, 0.95, 1}});
@@ -96,10 +96,10 @@ Page sizes are sc-graphics' `sc::page_size` (`a3`, `a4`, `a5`, `letter`,
 `legal`; `page.h`) and `sc::orientation` (`portrait`, `landscape`), as for
 `sc::pdf`; every page of a file has the same size.
 
-Fonts are found by sc-graphics' `sc::font_face` (fontconfig), the lookup every
-canvas shares, so both embed the same font files. Curves, rounded corners,
-even-odd fills and SVG clip paths stay vector graphics. A colour's alpha is
-its transparency, for fills, strokes and text, as in sc-pdf.
+Each shape takes an `sc::appearance` (stroke and fill), and a colour's alpha
+is honoured for fills, strokes and text, as in sc-pdf. Fonts are found by
+sc-graphics' `sc::font_face` (fontconfig), so both writers embed the same font
+files. Curves, even-odd fills and SVG clip paths stay vector graphics.
 
 With MuPDF 1.27 and later (resolute, Homebrew) only the glyphs used are
 embedded. Jammy's 1.19 and noble's 1.23 can't subset, so they embed whole
@@ -114,12 +114,12 @@ sc-mupdf-write [--size a4|a3|letter|legal] [--landscape] [--svg FILE] [OUTPUT]
 sc-mupdf-demo [--page N] [--scale S] [--png FILE] [-p PASSWORD] [FILE]
 ```
 
-`sc-mupdf-write` writes sc-pdf's demo page, call for call, with MuPDF, to
-compare with `sc-pdf-demo`'s file: text, shapes, SVG drawings, a
-half-transparent circle over the top boxes, a link, and a race track path
-placed in the bottom-right corner by its exact `bounds()`. On a shorter page (landscape, Letter) the SVG
-frames go on a second page; `--svg FILE` adds a page with that drawing. The
-file goes to the temporary directory unless OUTPUT is given.
+`sc-mupdf-write` draws `sc-pdf-demo`'s page call for call with MuPDF, so the
+two files can be compared: text, shapes, SVG drawings, a half-transparent
+circle over the top boxes, a link, and a race track placed in the
+bottom-right corner by its exact `bounds()`. On a shorter page (Letter, or
+landscape) the SVG frames go on a second page; `--svg FILE` adds a page with
+that drawing. The file goes to the temporary directory unless OUTPUT is given.
 
 `sc-mupdf-demo` reads a small two-page PDF it makes itself, or FILE, and
 shows each call with what it returned: the pages, every line with its box,

@@ -116,8 +116,8 @@ namespace sc::mupdf {
             current = static_cast<unsigned>(pages.size() - 1);
         }
 
-        // A path built by build(fz_path *), filled (by the fill's rule) and stroked: whichever of the
-        // two isn't none.
+        // Fills (by the fill's rule) and/or strokes the path build(fz_path *) makes; whichever is none
+        // is left out.
         template<typename Build>
         void paint(const sc::appearance &look, Build build) {
             const auto &stroke = look.stroke();
@@ -154,7 +154,7 @@ namespace sc::mupdf {
             fz_drop_path(context, shape);
         }
 
-        // MuPDF's version of a canvas path (curves kept).
+        // Writes steps into shape, curves kept.
         void trace(fz_path *shape, const path &steps) const {
             for (const auto &step: steps.steps()) {
                 switch (step.type) {
@@ -172,7 +172,6 @@ namespace sc::mupdf {
         fz_font *font_for(const font &spec) {
             const auto key = std::tuple{spec.family, spec.weight, spec.italic, spec.style};
             if (const auto found = fonts.find(key); found != fonts.end()) return found->second;
-            // sc-graphics' lookup (fontconfig), the same as every canvas's.
             const auto face = spec.face();
             if (!face) throw std::runtime_error("sc::mupdf::writer: fontconfig found no font for \"" + spec.family + "\"");
             const std::string file = face->file();

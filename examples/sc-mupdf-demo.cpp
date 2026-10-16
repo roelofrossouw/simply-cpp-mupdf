@@ -16,7 +16,7 @@
 #include "sample_pdf.h"
 
 int main(int argc, char **argv) {
-    // The command line: -h/--help comes with sc::params, which also reports mistakes and exits.
+    // sc::params brings -h/--help, and reports mistakes and exits.
     const sc::params args{argc, argv, {
         {"name", "sc-mupdf-demo"},
         {"description", "Reads a PDF (or XPS, EPUB, CBZ, an image) with MuPDF and shows its pages, blocks and lines, "
