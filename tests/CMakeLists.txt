@@ -4,3 +4,4 @@ set(SC_TEST_LINK_LIBRARIES sc-mupdf)
 set(SC_TEST_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/examples")
 
 add_sc_test(mupdf LABELS unit)
+add_sc_test(writer LABELS unit)
