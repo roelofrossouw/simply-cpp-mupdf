@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     // sc::params brings -h/--help, and reports mistakes and exits.
     const sc::params args{argc, argv, {
         {"name", "sc-mupdf-write"},
-        {"description", "Writes the same page as sc-pdf-demo, but with MuPDF instead of PDFHummus, so you can put the two "
+        {"description", "Writes the same page as sc-pdf-demo, but with MuPDF instead of sc-pdflite, so you can put the two "
                         "PDFs side by side and compare them.\nMore on the wiki: "
                         "https://github.com/roelofrossouw/simply-cpp/wiki/PDF-Engines"},
         {"options", {

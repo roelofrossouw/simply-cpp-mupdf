@@ -13,7 +13,7 @@
 #include <string>
 
 namespace sc::mupdf {
-    // A PDF file written with MuPDF: an sc::canvas with the same calls as sc-pdf's sc::pdf (PDFHummus),
+    // A PDF file written with MuPDF: an sc::canvas with the same calls as sc-pdf's sc::pdf (sc-pdflite),
     // so the two can be swapped and their files compared. Positions are in points (1/72 inch) from
     // the page's top-left corner, y down. A colour's alpha is honoured; fonts are found through
     // fontconfig, as sc::pdf finds them, and embedded. Drawing goes to the current page: the newest,
