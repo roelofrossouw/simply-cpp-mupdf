@@ -4,7 +4,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/SimplyCppFunctions.cmake")
 
 find_or_install_package(sc-core simply-cpp-dev simply-cpp 1.10.0)
 # mupdf_writer.h's sc::canvas.
-find_or_install_package(sc-graphics simply-cpp-graphics-dev simply-cpp-graphics 6.0.2)
+find_or_install_package(sc-graphics simply-cpp-graphics-dev simply-cpp-graphics 6.2.0)
 # The libraries link mupdf::mupdf, found by the Findmupdf.cmake installed next to this file.
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 find_or_install_package(mupdf libmupdf-dev mupdf)
