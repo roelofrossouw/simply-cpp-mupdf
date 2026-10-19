@@ -10,7 +10,7 @@ message(STATUS "SimplyCPP ${SC_MODULE} Version: ${SC_VERSION}")
 
 find_or_install_package(sc-core simply-cpp-dev simply-cpp 1.10.0)
 # sc::canvas, which the writer implements, and sc::drawing.
-find_or_install_package(sc-graphics simply-cpp-graphics-dev simply-cpp-graphics 5.0.0)
+find_or_install_package(sc-graphics simply-cpp-graphics-dev simply-cpp-graphics 5.1.0)
 # MuPDF has no CMake package: cmake/Findmupdf.cmake finds it (Homebrew's, or Ubuntu's libmupdf-dev:
 # static on jammy and noble, shared on resolute).
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -59,5 +59,5 @@ add_sc_example(sc-mupdf-write)
 # dpkg-shlibdeps. A consumer links the static library too, so the -dev package brings MuPDF's
 # headers and, for jammy's and noble's static libmupdf, the -dev packages of what it needs.
 package_sc_module(
-        DEV_DEPENDS "simply-cpp-dev (>= 1.10.0~)" "simply-cpp-graphics-dev (>= 5.0.0~)" libmupdf-dev libmujs-dev libgumbo-dev libharfbuzz-dev
+        DEV_DEPENDS "simply-cpp-dev (>= 1.10.0~)" "simply-cpp-graphics-dev (>= 5.1.0~)" libmupdf-dev libmujs-dev libgumbo-dev libharfbuzz-dev
         libfreetype-dev libjbig2dec0-dev libopenjp2-7-dev libjpeg-dev zlib1g-dev)
