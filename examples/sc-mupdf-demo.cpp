@@ -19,8 +19,9 @@ int main(int argc, char **argv) {
     // sc::params brings -h/--help, and reports mistakes and exits.
     const sc::params args{argc, argv, {
         {"name", "sc-mupdf-demo"},
-        {"description", "Reads a PDF (or XPS, EPUB, CBZ, an image) with MuPDF and shows its pages, blocks and lines, "
-                        "a page's text and the page drawn as a PNG. Without FILE it reads a small PDF made on the spot."},
+        {"description", "Reads a PDF (or XPS, EPUB, CBZ or an image) with MuPDF and walks through it: its pages, the blocks "
+                        "and lines on them, a page's text, and the page drawn as a PNG. Without FILE it makes a small PDF on "
+                        "the spot and reads that.\nMore on the wiki: https://github.com/roelofrossouw/simply-cpp/wiki/MuPDF"},
         {"options", {
             {"password", {{"short", "p"}, {"value", "PASSWORD"}, {"help", "the password of an encrypted FILE"}}},
             {"page", {{"type", "integer"}, {"default", 1}, {"value", "N"}, {"help", "the page whose text and image are shown"}}},
