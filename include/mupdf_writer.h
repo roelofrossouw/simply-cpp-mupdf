@@ -72,6 +72,9 @@ namespace sc::mupdf {
 
         void paint_text(const text &sample, const sc::fill &fill) override;
 
+        // Throws sc::mupdf::error when MuPDF can't read the image.
+        void paint_bitmap(const bitmap &picture, const transform &placement) override;
+
         // In points, from the font's glyphs: the advances, and the height of x and H above the
         // baseline.
         double measure_width(const text &sample) override;
@@ -85,6 +88,7 @@ namespace sc::mupdf {
 
         void paint_path(const path &shape, const sc::appearance &look) override;
 
+    public:
         void push_clip(const path &shape) override;
 
         void pop_clip() override;
