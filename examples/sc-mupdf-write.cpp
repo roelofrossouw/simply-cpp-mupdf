@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
         {"name", "sc-mupdf-write"},
         {"description", "Writes sc-pdf-demo's page with MuPDF instead of PDFHummus, so the two PDFs can be compared."},
         {"options", {
-            {"size", {{"default", "a4"}, {"choices", {"a3", "a4", "letter", "legal"}}, {"help", "the paper"}}},
+            {"size", {{"default", "A4"}, {"choices", {"A3", "A4", "A5", "letter", "legal"}}, {"help", "the paper"}}},
             {"landscape", {{"type", "boolean"}, {"help", "turn the pages sideways"}}},
             {"svg", {{"value", "FILE"}, {"help", "an SVG file to draw on a page of its own"}}}}},
         {"positional", {

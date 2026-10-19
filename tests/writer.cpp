@@ -76,7 +76,7 @@ int main() {
         CHECK(doc.page(2).text().empty());
     }
     {
-        sc::mupdf::writer wide{directory / "a3-landscape.pdf", sc::page_size::a3, sc::orientation::landscape};
+        sc::mupdf::writer wide{directory / "a3-landscape.pdf", sc::page_size::A3, sc::orientation::landscape};
         CHECK_EQ(wide.page_width(), 1191.0);
         CHECK_EQ(wide.page_height(), 842.0);
     }

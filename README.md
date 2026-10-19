@@ -81,7 +81,7 @@ same calls as [sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf)'s
 #include <mupdf_writer.h>
 
 sc::mupdf::writer pdf{"hello.pdf"};                          // A4 portrait
-// sc::mupdf::writer pdf{"wide.pdf", sc::page_size::a3, sc::orientation::landscape};
+// sc::mupdf::writer pdf{"wide.pdf", sc::page_size::A3, sc::orientation::landscape};
 pdf.draw(sc::text{"Hello", {50, 80}, sc::font::bold("sans-serif", 24)});
 pdf.draw(sc::rounded_rect{sc::rect{50, 130, 200, 80}, 8}, {sc::color::Black, sc::color{0.9, 0.95, 1}});
 pdf.draw(sc::circle{{300, 80}, 20}, sc::appearance::filled(sc::color{0, 0, 0, 0.5})); // half transparent
@@ -93,7 +93,7 @@ pdf.new_page();
 pdf.close();                                                 // or let the destructor finish it
 ```
 
-Page sizes are sc-graphics' `sc::page_size` (`a3`, `a4`, `a5`, `letter`,
+Page sizes are sc-graphics' `sc::page_size` (`A3`, `A4`, `A5`, `letter`,
 `legal`; `page.h`) and `sc::orientation` (`portrait`, `landscape`), as for
 `sc::pdf`; every page of a file has the same size.
 
@@ -111,7 +111,7 @@ PDFHummus writes, but the pages look the same and read back the same text.
 ## Demos
 
 ```
-sc-mupdf-write [--size a4|a3|letter|legal] [--landscape] [--svg FILE] [OUTPUT]
+sc-mupdf-write [--size A3|A4|A5|letter|legal] [--landscape] [--svg FILE] [OUTPUT]
 sc-mupdf-demo [--page N] [--scale S] [--png FILE] [-p PASSWORD] [FILE]
 ```
 

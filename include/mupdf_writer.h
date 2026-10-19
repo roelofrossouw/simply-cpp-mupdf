@@ -23,7 +23,7 @@ namespace sc::mupdf {
     public:
         // Starts the file with one page; every page has this size and orientation (page.h). Throws
         // sc::mupdf::error when MuPDF can't.
-        explicit writer(const std::filesystem::path &filename, page_size size = page_size::a4, orientation turned = orientation::portrait);
+        explicit writer(const std::filesystem::path &filename, page_size size = page_size::A4, orientation turned = orientation::portrait);
 
         ~writer() override;
 
