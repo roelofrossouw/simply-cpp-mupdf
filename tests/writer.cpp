@@ -77,8 +77,8 @@ int main() {
     }
     {
         sc::mupdf::writer wide{directory / "a3-landscape.pdf", sc::page_size::A3, sc::orientation::landscape};
-        CHECK_EQ(wide.page_width(), 1191.0);
-        CHECK_EQ(wide.page_height(), 842.0);
+        CHECK_NEAR(wide.page_width(), 1190.5512, 1e-4); // 420 x 297 mm
+        CHECK_NEAR(wide.page_height(), 841.8898, 1e-4);
     }
 
     SECTION("Transparency: a colour's alpha");
