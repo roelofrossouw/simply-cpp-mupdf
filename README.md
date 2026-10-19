@@ -15,7 +15,7 @@ commercial MuPDF licence from [Artifex](https://artifex.com/licensing/)).
 
 **For writing PDFs under a permissive licence, use
 [sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf) instead:**
-Apache-2.0, on PDFHummus, with the same calls. `sc::mupdf::writer` and
+Apache-2.0, on simply-cpp's own sc-pdflite, with the same calls. `sc::mupdf::writer` and
 `sc::pdf` are both an `sc::canvas`, so switching is one class name. What
 sc-pdf doesn't do is read, search or render PDFs: that's what sc-mupdf adds.
 The wiki's [PDF engines](https://github.com/roelofrossouw/simply-cpp/wiki/PDF-Engines)
@@ -105,7 +105,7 @@ files. Curves, even-odd fills and SVG clip paths stay vector graphics.
 With MuPDF 1.27 and later (resolute, Homebrew) only the glyphs used are
 embedded. Jammy's 1.19 and noble's 1.23 can't subset, so they embed whole
 fonts and their files are much larger. The files aren't byte-for-byte what
-PDFHummus writes, but the pages look the same and read back the same text.
+sc-pdf writes, but the pages look the same and read back the same text.
 `close()` throws `sc::mupdf::error` when the file can't be saved.
 
 ## Demos
