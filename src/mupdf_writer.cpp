@@ -333,6 +333,30 @@ namespace sc::mupdf {
         fz_drop_image(context, image);
     }
 
+    void writer::paint_bitmap(const bitmap &picture, const transform &placement) {
+        fz_device *target = impl_->device();
+        fz_context *context = impl_->context;
+        fz_image *image = nullptr;
+        detail::call(context, "sc::mupdf::writer: the bitmap", [&] {
+            fz_buffer *bytes = fz_new_buffer_from_copied_data(context, reinterpret_cast<const unsigned char *>(picture.bytes().data()), picture.bytes().size());
+            fz_try(context) image = fz_new_image_from_buffer(context, bytes);
+            fz_always(context) fz_drop_buffer(context, bytes);
+            fz_catch(context) fz_rethrow(context);
+        });
+        // The unit square as sc::canvas places it: MuPDF's device is y down too. Identical images
+        // are written once, by MuPDF's digest of them.
+        const auto &m = placement;
+        try {
+            detail::call(context, "sc::mupdf::writer: the bitmap", [&] {
+                fz_fill_image(context, target, image, fz_make_matrix(f(m.a()), f(m.b()), f(m.c()), f(m.d()), f(m.e()), f(m.f())), 1, fz_default_color_params);
+            });
+        } catch (...) {
+            fz_drop_image(context, image);
+            throw;
+        }
+        fz_drop_image(context, image);
+    }
+
     void writer::add_link(const std::string &url, const rect &pos) {
         impl_->check_open();
         impl_->pages[impl_->current].links.emplace_back(url, pos);

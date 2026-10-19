@@ -6,6 +6,7 @@
 
 #include "sc_test.h"
 
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -161,6 +162,27 @@ int main() {
         for (const auto block: doc.page(0).blocks()) image = image || block.type() == sc::mupdf::block_type::image;
         CHECK(image);
         CHECK_LT(std::size_t{1000}, doc.page(0).png(0.5).size()); // it renders
+    }
+
+    SECTION("A bitmap lands where it was drawn, stretched to its box");
+    {
+        const auto bitmap_file = directory / "bitmap.pdf";
+        {
+            const sc::bitmap picture{sc::mupdf::document{text_file}.page(0).png(0.25)};
+            sc::mupdf::writer pdf{bitmap_file};
+            pdf.draw(picture, {100, 200, 300, 150});
+        }
+        const sc::mupdf::document doc{bitmap_file};
+        std::optional<sc::rect> box;
+        for (const auto block: doc.page(0).blocks())
+            if (block.type() == sc::mupdf::block_type::image) box = block.bbox();
+        CHECK(box.has_value());
+        if (box) {
+            CHECK_LT(std::abs(box->left() - 100), 0.5);
+            CHECK_LT(std::abs(box->top() - 200), 0.5);
+            CHECK_LT(std::abs(box->width() - 300), 0.5);
+            CHECK_LT(std::abs(box->height() - 150), 0.5);
+        }
     }
 
     SECTION("Mistakes throw");
