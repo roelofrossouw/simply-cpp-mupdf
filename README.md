@@ -87,6 +87,7 @@ pdf.draw(sc::rounded_rect{sc::rect{50, 130, 200, 80}, 8}, {sc::color::Black, sc:
 pdf.draw(sc::circle{{300, 80}, 20}, sc::appearance::filled(sc::color{0, 0, 0, 0.5})); // half transparent
 pdf.draw(sc::drawing::load_svg("logo.svg"), sc::rect{50, 230, 100, 100});
 pdf.draw_image("logo.png", {300, 130, 200, 80});
+pdf.draw(sc::bitmap::load("photo.jpg"), {50, 350, 160, 120}); // stretched to the box
 pdf.add_link("https://example.com", {50, 30, 120, 25});
 pdf.new_page();
 pdf.close();                                                 // or let the destructor finish it
