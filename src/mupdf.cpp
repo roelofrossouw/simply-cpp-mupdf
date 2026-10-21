@@ -1,11 +1,11 @@
 #include "mupdf.h"
 
+#include <core.h>
 #include <utf8.h>
 
 #include "fitz_call.h"
 
 #include <algorithm>
-#include <cctype>
 #include <map>
 
 // MuPDF's error handling (fz_try, longjmp) and the versions used: see fitz_call.h.
@@ -23,19 +23,11 @@ namespace sc::mupdf {
         state() {
             context = fz_new_context(nullptr, nullptr, FZ_STORE_DEFAULT);
             if (!context) throw error{"MuPDF: could not create a context"};
-            std::string failure;
-            bool failed = false;
-            fz_try(context) {
-                fz_register_document_handlers(context);
-            }
-            fz_catch(context) {
-                failed = true;
-                failure = caught(context);
-            }
-            if (failed) {
-                const std::string message = failure;
+            try {
+                detail::call(context, "MuPDF", [&] { fz_register_document_handlers(context); });
+            } catch (...) {
                 fz_drop_context(context);
-                throw error{"MuPDF: " + message};
+                throw;
             }
         }
 
@@ -70,9 +62,7 @@ namespace sc::mupdf {
 
         bool name_has(const char *name, const std::string_view part) {
             if (!name) return false;
-            std::string lower{name};
-            std::ranges::transform(lower, lower.begin(), [](const unsigned char c) { return static_cast<char>(std::tolower(c)); });
-            return lower.find(part) != std::string::npos;
+            return lowercase(name).find(part) != std::string::npos;
         }
 
         bool looks_bold(fz_context *context, fz_font *font) {
