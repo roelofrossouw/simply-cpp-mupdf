@@ -86,7 +86,6 @@ namespace sc::mupdf {
             return text.substr(first, text.find_last_not_of(space) - first + 1);
         }
 
-        // Whether most of a line's characters pass the test.
         template<typename Test>
         bool most_chars(fz_context *context, const fz_stext_line *line, Test test) {
             if (!line) return false;
@@ -102,8 +101,6 @@ namespace sc::mupdf {
             return block && block->type == FZ_STEXT_BLOCK_TEXT ? block->u.t.first_line : nullptr;
         }
     }
-
-    // line
 
     std::string line::text() const {
         if (!line_) return {};
@@ -140,8 +137,6 @@ namespace sc::mupdf {
         return *this;
     }
 
-    // block
-
     block_type block::type() const {
         if (!block_) return block_type::other;
         if (block_->type == FZ_STEXT_BLOCK_TEXT) return block_type::text;
@@ -177,8 +172,6 @@ namespace sc::mupdf {
         return *this;
     }
 
-    // blocks
-
     struct blocks::impl {
         std::shared_ptr<page::state> document;
         fz_stext_page *text = nullptr;
@@ -201,8 +194,6 @@ namespace sc::mupdf {
         if (!impl_ || !impl_->text) return end();
         return iterator<block>{block{impl_->document->context, impl_->text->first_block}};
     }
-
-    // page
 
     page::page(std::shared_ptr<state> document, const int index) : document_(std::move(document)), index_(index) {
     }
@@ -286,13 +277,9 @@ namespace sc::mupdf {
         return *this;
     }
 
-    // pages
-
     iterator<page> pages::begin() const { return iterator<page>{page{document_, 0}}; }
 
     iterator<page> pages::end() const { return iterator<page>{page{document_, count_}}; }
-
-    // document
 
     document::document(const std::filesystem::path &file, const std::string_view password)
         : state_(std::make_shared<page::state>()) {

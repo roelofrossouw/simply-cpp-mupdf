@@ -226,7 +226,6 @@ namespace sc::mupdf {
         mutable std::shared_ptr<void> page_; // the fz_page, dropped by the last copy holding it
     };
 
-    // The pages of a document, for a range-for.
     class pages {
     public:
         [[nodiscard]] iterator<page> begin() const;
@@ -269,6 +268,6 @@ namespace sc::mupdf {
     private:
         document() = default;
 
-        std::shared_ptr<mupdf::page::state> state_; // mupdf::: page here is the function above
+        std::shared_ptr<mupdf::page::state> state_; // mupdf::page: here page is the function above
     };
 }
