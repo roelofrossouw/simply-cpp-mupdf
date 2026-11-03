@@ -206,6 +206,10 @@ namespace sc::mupdf {
         // The page drawn as a PNG, `scale` pixels per point (1 is 72 dpi, 2 is 144 dpi).
         [[nodiscard]] std::string png(double scale = 1.5) const;
 
+        // The same as a JPEG of `quality` 1 to 100, smaller for a preview. Needs MuPDF 1.23 or
+        // newer (noble's, resolute's); with jammy's 1.19 it throws error.
+        [[nodiscard]] std::string jpeg(double scale = 1.5, int quality = 85) const;
+
         page &operator++();
 
         bool operator==(const page &other) const { return index_ == other.index_; }
@@ -220,6 +224,9 @@ namespace sc::mupdf {
 
         // The loaded fz_page, loading it the first time.
         [[nodiscard]] void *loaded() const;
+
+        // The page drawn at scale, as a PNG (quality 0) or a JPEG.
+        [[nodiscard]] std::string drawn(const char *name, double scale, int quality) const;
 
         std::shared_ptr<state> document_;
         int index_ = 0;

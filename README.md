@@ -44,6 +44,7 @@ for (const auto page: doc.pages()) {
 }
 const std::string text = doc.page(0).text();        // blocks joined by "\n\n", lines by "\n"
 const std::string png = doc.page(0).png(2);         // 2 pixels per point: 144 dpi
+const std::string jpeg = doc.page(0).jpeg(0.5, 80); // a preview: 36 dpi, quality 80 (MuPDF 1.23+)
 ```
 
 Positions are `sc::rect`s in points (1/72 inch) from the page's top-left

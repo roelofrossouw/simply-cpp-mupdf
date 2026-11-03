@@ -44,6 +44,16 @@ namespace {
         }
         return false;
     }
+
+    template<typename F>
+    bool throws_invalid(F &&call) {
+        try {
+            call();
+        } catch (const std::invalid_argument &) {
+            return true;
+        }
+        return false;
+    }
 }
 
 int main() {
@@ -159,6 +169,19 @@ int main() {
         };
         CHECK_EQ(width(png), 595);
         CHECK_EQ(width(document.page(0).png(2)), 1190);
+    }
+
+    SECTION("Page images as JPEG");
+    {
+#if defined(SC_MUPDF_JPEG_4) || defined(SC_MUPDF_JPEG_5)
+        const auto jpeg = document.page(0).jpeg(0.5, 70);
+        CHECK(jpeg.starts_with("\xff\xd8\xff"));
+        CHECK_LT(jpeg.size(), document.page(0).jpeg(1, 95).size()); // bigger and better: more bytes
+#else
+        CHECK(throws_error([&] { (void) document.page(0).jpeg(); }));
+#endif
+        CHECK(throws_invalid([&] { (void) document.page(0).jpeg(1, 0); }));
+        CHECK(throws_invalid([&] { (void) document.page(0).jpeg(0); }));
     }
 
     SECTION("From a file");

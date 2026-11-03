@@ -34,11 +34,22 @@ set(CMAKE_REQUIRED_INCLUDES ${SC_MUPDF_INCLUDE_DIR})
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY) # compile only: linking MuPDF here isn't needed
 check_cxx_source_compiles("#include <mupdf/pdf.h>
 int main() { pdf_subset_fonts(nullptr, nullptr, 0, nullptr); }" SC_MUPDF_HAS_SUBSET_FONTS)
+# JPEG pages: MuPDF 1.23 (noble) writes them with 4 arguments, 1.24+ (resolute, Homebrew) with 5,
+# jammy's 1.19 not at all.
+check_cxx_source_compiles("#include <mupdf/fitz.h>
+int main() { fz_new_buffer_from_pixmap_as_jpeg(nullptr, nullptr, fz_default_color_params, 85, 0); }" SC_MUPDF_JPEG_5)
+check_cxx_source_compiles("#include <mupdf/fitz.h>
+int main() { fz_new_buffer_from_pixmap_as_jpeg(nullptr, nullptr, fz_default_color_params, 85); }" SC_MUPDF_JPEG_4)
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_TRY_COMPILE_TARGET_TYPE)
 if (SC_MUPDF_HAS_SUBSET_FONTS)
     target_compile_definitions(sc-obj-mupdf PRIVATE SC_MUPDF_HAS_SUBSET_FONTS)
 endif ()
+foreach (jpeg SC_MUPDF_JPEG_5 SC_MUPDF_JPEG_4)
+    if (${jpeg})
+        target_compile_definitions(sc-obj-mupdf PRIVATE ${jpeg})
+    endif ()
+endforeach ()
 
 add_sc_libraries(DESCRIPTION "simply-cpp-mupdf")
 

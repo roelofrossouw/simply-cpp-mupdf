@@ -241,8 +241,20 @@ namespace sc::mupdf {
         return text;
     }
 
-    std::string page::png(const double scale) const {
-        if (scale <= 0) throw std::invalid_argument{"sc::mupdf::page::png: the scale must be above 0"};
+    std::string page::png(const double scale) const { return drawn("png", scale, 0); }
+
+    std::string page::jpeg(const double scale, const int quality) const {
+        if (quality < 1 || quality > 100) throw std::invalid_argument{"sc::mupdf::page::jpeg: the quality must be 1 to 100"};
+        if (scale <= 0) throw std::invalid_argument{"sc::mupdf::page::jpeg: the scale must be above 0"};
+#if !defined(SC_MUPDF_JPEG_4) && !defined(SC_MUPDF_JPEG_5)
+        throw error{"JPEG needs MuPDF 1.23 or newer; this one writes PNG only"};
+#else
+        return drawn("jpeg", scale, quality);
+#endif
+    }
+
+    std::string page::drawn(const char *name, const double scale, const int quality) const {
+        if (scale <= 0) throw std::invalid_argument{std::string{"sc::mupdf::page::"} + name + ": the scale must be above 0"};
         auto *p = static_cast<fz_page *>(loaded());
         fz_context *context = document_->context;
         fz_pixmap *pixmap = nullptr;
@@ -256,19 +268,24 @@ namespace sc::mupdf {
         fz_try(context) {
             const auto s = static_cast<float>(scale);
             pixmap = fz_new_pixmap_from_page(context, p, fz_scale(s, s), fz_device_rgb(context), 0);
-            buffer = fz_new_buffer_from_pixmap_as_png(context, pixmap, fz_default_color_params);
+            if (quality == 0) buffer = fz_new_buffer_from_pixmap_as_png(context, pixmap, fz_default_color_params);
+#if defined(SC_MUPDF_JPEG_5)
+            else buffer = fz_new_buffer_from_pixmap_as_jpeg(context, pixmap, fz_default_color_params, quality, 0);
+#elif defined(SC_MUPDF_JPEG_4)
+            else buffer = fz_new_buffer_from_pixmap_as_jpeg(context, pixmap, fz_default_color_params, quality);
+#endif
             length = fz_buffer_storage(context, buffer, &bytes);
         }
         fz_catch(context) {
             failed = true;
             failure = caught(context);
         }
-        std::string png;
-        if (!failed) png.assign(reinterpret_cast<const char *>(bytes), length);
+        std::string image;
+        if (!failed) image.assign(reinterpret_cast<const char *>(bytes), length);
         fz_drop_buffer(context, buffer);
         fz_drop_pixmap(context, pixmap);
         if (failed) throw error{"page " + std::to_string(number()) + ": " + failure};
-        return png;
+        return image;
     }
 
     page &page::operator++() {
