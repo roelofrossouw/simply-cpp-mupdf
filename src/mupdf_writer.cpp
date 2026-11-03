@@ -74,7 +74,7 @@ namespace sc::mupdf {
             const auto page = page_dimensions(size, turned);
             width = page.width();
             height = page.height();
-            context = fz_new_context(nullptr, nullptr, FZ_STORE_DEFAULT);
+            context = detail::quiet_context();
             if (!context) throw error{"MuPDF: could not create a context"};
             try {
                 pdf_document *created = nullptr;

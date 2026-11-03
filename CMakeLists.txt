@@ -37,9 +37,9 @@ int main() { pdf_subset_fonts(nullptr, nullptr, 0, nullptr); }" SC_MUPDF_HAS_SUB
 # JPEG pages: MuPDF 1.23 (noble) writes them with 4 arguments, 1.24+ (resolute, Homebrew) with 5,
 # jammy's 1.19 not at all.
 check_cxx_source_compiles("#include <mupdf/fitz.h>
-int main() { fz_new_buffer_from_pixmap_as_jpeg(nullptr, nullptr, fz_default_color_params, 85, 0); }" SC_MUPDF_JPEG_5)
+int main() { fz_write_pixmap_as_jpeg(nullptr, nullptr, nullptr, 85, 0); }" SC_MUPDF_JPEG_5)
 check_cxx_source_compiles("#include <mupdf/fitz.h>
-int main() { fz_new_buffer_from_pixmap_as_jpeg(nullptr, nullptr, fz_default_color_params, 85); }" SC_MUPDF_JPEG_4)
+int main() { fz_write_pixmap_as_jpeg(nullptr, nullptr, nullptr, 85); }" SC_MUPDF_JPEG_4)
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_TRY_COMPILE_TARGET_TYPE)
 if (SC_MUPDF_HAS_SUBSET_FONTS)

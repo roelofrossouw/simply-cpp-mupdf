@@ -21,7 +21,7 @@ namespace sc::mupdf {
         std::string data; // from_memory(): MuPDF reads it in place
 
         state() {
-            context = fz_new_context(nullptr, nullptr, FZ_STORE_DEFAULT);
+            context = detail::quiet_context();
             if (!context) throw error{"MuPDF: could not create a context"};
             try {
                 detail::call(context, "MuPDF", [&] { fz_register_document_handlers(context); });
@@ -259,21 +259,31 @@ namespace sc::mupdf {
         fz_context *context = document_->context;
         fz_pixmap *pixmap = nullptr;
         fz_buffer *buffer = nullptr;
+        fz_output *output = nullptr;
         unsigned char *bytes = nullptr;
         std::size_t length = 0;
         std::string failure;
         bool failed = false;
         fz_var(pixmap);
         fz_var(buffer);
+        fz_var(output);
         fz_try(context) {
             const auto s = static_cast<float>(scale);
             pixmap = fz_new_pixmap_from_page(context, p, fz_scale(s, s), fz_device_rgb(context), 0);
-            if (quality == 0) buffer = fz_new_buffer_from_pixmap_as_png(context, pixmap, fz_default_color_params);
+            if (quality == 0) {
+                buffer = fz_new_buffer_from_pixmap_as_png(context, pixmap, fz_default_color_params);
+            } else {
+                // Written into a buffer of ours: 1.23's fz_new_buffer_from_pixmap_as_jpeg() drops
+                // the pixmap it's given, which corrupted the heap when it was dropped here too.
+                buffer = fz_new_buffer(context, 64 * 1024);
+                output = fz_new_output_with_buffer(context, buffer);
 #if defined(SC_MUPDF_JPEG_5)
-            else buffer = fz_new_buffer_from_pixmap_as_jpeg(context, pixmap, fz_default_color_params, quality, 0);
+                fz_write_pixmap_as_jpeg(context, output, pixmap, quality, 0);
 #elif defined(SC_MUPDF_JPEG_4)
-            else buffer = fz_new_buffer_from_pixmap_as_jpeg(context, pixmap, fz_default_color_params, quality);
+                fz_write_pixmap_as_jpeg(context, output, pixmap, quality);
 #endif
+                fz_close_output(context, output);
+            }
             length = fz_buffer_storage(context, buffer, &bytes);
         }
         fz_catch(context) {
@@ -282,6 +292,7 @@ namespace sc::mupdf {
         }
         std::string image;
         if (!failed) image.assign(reinterpret_cast<const char *>(bytes), length);
+        fz_drop_output(context, output);
         fz_drop_buffer(context, buffer);
         fz_drop_pixmap(context, pixmap);
         if (failed) throw error{"page " + std::to_string(number()) + ": " + failure};

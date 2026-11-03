@@ -64,7 +64,8 @@ reads as empty rather than as garbage.
 
 Failures throw `sc::mupdf::error` with MuPDF's message: a file that can't be
 opened, a wrong password, a damaged page. `document.page(n)` throws
-`std::out_of_range`. A document isn't thread-safe: use one per thread.
+`std::out_of_range`. MuPDF's own messages ("repairing PDF document") aren't printed
+(since 4.2.1), so a server's log doesn't fill with them. A document isn't thread-safe: use one per thread.
 
 MuPDF is found through Homebrew (`mupdf`) on macOS and Ubuntu's
 `libmupdf-dev` on Linux: 1.19 on jammy, 1.23 on noble, 1.27 on resolute

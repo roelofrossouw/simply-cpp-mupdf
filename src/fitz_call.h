@@ -24,6 +24,18 @@ namespace sc::mupdf::detail {
         return message;
     }
 
+    // A new context that prints nothing: MuPDF writes its warnings ("repairing PDF document") and
+    // errors to stderr, which a server's log (php-fpm's) would collect for every damaged file.
+    // Errors still come back as sc::mupdf::error with MuPDF's message. nullptr when it can't.
+    inline fz_context *quiet_context() {
+        fz_context *context = fz_new_context(nullptr, nullptr, FZ_STORE_DEFAULT);
+        if (!context) return nullptr;
+        const auto nothing = [](void *, const char *) {};
+        fz_set_warning_callback(context, nothing, nullptr);
+        fz_set_error_callback(context, nothing, nullptr);
+        return context;
+    }
+
     // Runs MuPDF calls, throwing what they reported as "<what>: <MuPDF's message>".
     template<typename F>
     void call(fz_context *context, const std::string_view what, F &&calls) {
