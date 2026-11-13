@@ -79,6 +79,10 @@ namespace sc::mupdf {
 
     enum class block_type { text, image, other };
 
+    // Whether a page's blocks include its images. Kept, an image between two runs of text also splits
+    // them into separate text blocks; left out, MuPDF groups the text as if the images weren't there.
+    enum class image_blocks { kept, left_out };
+
     // One line of text: a handle into its page's text, valid while that page's blocks are.
     class line {
     public:
@@ -197,8 +201,9 @@ namespace sc::mupdf {
         // The page's size and position in points; most pages start at 0,0.
         [[nodiscard]] rect bounds() const;
 
-        // The page's text as blocks of lines, read now.
-        [[nodiscard]] mupdf::blocks blocks() const;
+        // The page's text as blocks of lines, read now, with its images as blocks of their own unless
+        // they're left out.
+        [[nodiscard]] mupdf::blocks blocks(image_blocks images = image_blocks::kept) const;
 
         // All its text: blocks joined by block_separator, lines by line_separator.
         [[nodiscard]] std::string text(std::string_view block_separator = "\n\n", std::string_view line_separator = "\n") const;

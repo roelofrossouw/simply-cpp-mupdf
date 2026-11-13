@@ -164,6 +164,29 @@ int main() {
         CHECK_LT(std::size_t{1000}, doc.page(0).png(0.5).size()); // it renders
     }
 
+    SECTION("Image blocks kept or left out (page::blocks(image_blocks))");
+    {
+        const auto images_file = directory / "text-around-image.pdf";
+        {
+            sc::mupdf::writer pdf{images_file};
+            pdf.draw(sc::text{"Above the picture", {72, 100}});
+            pdf.draw_image(image_file, {72, 110, 100, 40});
+            pdf.draw(sc::text{"Below the picture", {72, 170}});
+            pdf.close();
+        }
+        const sc::mupdf::document read{images_file};
+        const auto page = read.page(0);
+        const auto count = [&](const sc::mupdf::image_blocks images, const sc::mupdf::block_type type) {
+            int n = 0;
+            for (const auto block: page.blocks(images)) n += block.type() == type;
+            return n;
+        };
+        CHECK_EQ(count(sc::mupdf::image_blocks::kept, sc::mupdf::block_type::image), 1);
+        CHECK_EQ(count(sc::mupdf::image_blocks::left_out, sc::mupdf::block_type::image), 0);
+        CHECK(count(sc::mupdf::image_blocks::left_out, sc::mupdf::block_type::text) >= 1);
+        CHECK_EQ(page.text(), std::string{"Above the picture\n\nBelow the picture"});
+    }
+
     SECTION("A bitmap lands where it was drawn, stretched to its box");
     {
         const auto bitmap_file = directory / "bitmap.pdf";

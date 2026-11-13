@@ -54,6 +54,10 @@ document open. Blocks and lines point into their page's text, the object
 `page.blocks()` returns, so keep that while using them; a range-for over it
 does. A block is `block_type::text`, `image` or `other` (newer MuPDFs also
 report vector graphics and structure). Only text blocks have lines.
+`page.blocks(sc::mupdf::image_blocks::left_out)` leaves the images out: kept
+(the default), an image between two runs of text also splits them into
+separate text blocks; left out, MuPDF groups the text as if it weren't there
+(since 4.3.0).
 
 `line.bold()` and `italic()` go by most of the line's characters, using the
 font's flags or, since many PDFs embed bold faces without the flag, its name.

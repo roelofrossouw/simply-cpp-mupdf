@@ -216,14 +216,14 @@ namespace sc::mupdf {
         return to_rect(bounds);
     }
 
-    mupdf::blocks page::blocks() const {
+    mupdf::blocks page::blocks(const image_blocks images) const {
         auto *p = static_cast<fz_page *>(loaded());
         auto text = std::make_unique<mupdf::blocks::impl>();
         text->document = document_;
         fz_stext_page *raw = nullptr;
         document_->run("page " + std::to_string(number()), [&] {
             fz_stext_options options{}; // MuPDF's defaults (ligatures expanded, whitespace normalised),
-            options.flags = FZ_STEXT_PRESERVE_IMAGES; // plus the image blocks, left out otherwise
+            if (images == image_blocks::kept) options.flags = FZ_STEXT_PRESERVE_IMAGES; // plus the image blocks
             raw = fz_new_stext_page_from_page(document_->context, p, &options);
         });
         text->text = raw;
