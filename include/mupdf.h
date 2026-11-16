@@ -149,6 +149,11 @@ namespace sc::mupdf {
 
         [[nodiscard]] std::string font_name() const;
 
+        // An image block's picture as a PNG at its own resolution (the pixels the PDF holds, not
+        // the page drawn), drawn into bbox() on the page; empty for other blocks. For what a
+        // drawing loses: a scan's fine detail, such as a barcode's modules.
+        [[nodiscard]] std::string image_png() const;
+
         block &operator++();
 
         bool operator==(const block &other) const { return block_ == other.block_; }

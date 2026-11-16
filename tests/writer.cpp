@@ -197,9 +197,21 @@ int main() {
         }
         const sc::mupdf::document doc{bitmap_file};
         std::optional<sc::rect> box;
+        std::string pixels;
         for (const auto block: doc.page(0).blocks())
-            if (block.type() == sc::mupdf::block_type::image) box = block.bbox();
+            if (block.type() == sc::mupdf::block_type::image) box = block.bbox(), pixels = block.image_png();
         CHECK(box.has_value());
+        // The image's own pixels, not the page drawn: a PNG as wide and high as the one put in.
+        const auto png_size = [](const std::string &png) {
+            const auto at = [&](const std::size_t i) { return static_cast<unsigned>(static_cast<unsigned char>(png[i])); };
+            return png.size() > 24 ? std::pair{at(16) << 24 | at(17) << 16 | at(18) << 8 | at(19), at(20) << 24 | at(21) << 16 | at(22) << 8 | at(23)}
+                                   : std::pair{0u, 0u};
+        };
+        const auto original = sc::mupdf::document{text_file}.page(0).png(0.25);
+        CHECK(pixels.starts_with("\x89PNG"));
+        CHECK(png_size(pixels) == png_size(original));
+        for (const auto block: doc.page(0).blocks())
+            if (block.type() != sc::mupdf::block_type::image) CHECK(block.image_png().empty());
         if (box) {
             CHECK_LT(std::abs(box->left() - 100), 0.5);
             CHECK_LT(std::abs(box->top() - 200), 0.5);

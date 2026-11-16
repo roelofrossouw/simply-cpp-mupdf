@@ -167,6 +167,29 @@ namespace sc::mupdf {
 
     std::string block::font_name() const { return line{context_, first_line(block_)}.font_name(); }
 
+    std::string block::image_png() const {
+        if (!block_ || block_->type != FZ_STEXT_BLOCK_IMAGE || !block_->u.i.image) return {};
+        fz_buffer *buffer = nullptr;
+        unsigned char *bytes = nullptr;
+        std::size_t length = 0;
+        std::string failure;
+        bool failed = false;
+        fz_var(buffer);
+        fz_try(context_) {
+            buffer = fz_new_buffer_from_image_as_png(context_, block_->u.i.image, fz_default_color_params);
+            length = fz_buffer_storage(context_, buffer, &bytes);
+        }
+        fz_catch(context_) {
+            failed = true;
+            failure = caught(context_);
+        }
+        std::string image;
+        if (!failed) image.assign(reinterpret_cast<const char *>(bytes), length);
+        fz_drop_buffer(context_, buffer);
+        if (failed) throw error{"an image on the page: " + failure};
+        return image;
+    }
+
     block &block::operator++() {
         if (block_) block_ = block_->next;
         return *this;
