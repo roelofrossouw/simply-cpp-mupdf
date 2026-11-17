@@ -1,8 +1,8 @@
-#include "mupdf_writer.h"
+#include <sc/mupdf/mupdf_writer.h>
 
 #include "fitz_call.h"
 
-#include <font.h>
+#include <sc/graphics/font.h>
 
 #include <mupdf/pdf.h>
 

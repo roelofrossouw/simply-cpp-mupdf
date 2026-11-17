@@ -6,7 +6,7 @@
 // block is left. Only calls that are in MuPDF 1.19 (Ubuntu jammy) to 1.28 (Homebrew) are used, bar
 // font subsetting (1.27 and later: SC_MUPDF_HAS_SUBSET_FONTS).
 
-#include "mupdf.h"
+#include <sc/mupdf/mupdf.h>
 
 #include <mupdf/fitz.h>
 

@@ -1,8 +1,8 @@
 // Writes PDFs with sc::mupdf::writer into the temporary directory and reads them back with the
 // reader: pages and sizes (A3 landscape too), transparency, where text lands and how it measures,
 // links, images, going back to an earlier page, plus the mistakes that throw.
-#include "mupdf.h"
-#include "mupdf_writer.h"
+#include <sc/mupdf/mupdf.h>
+#include <sc/mupdf/mupdf_writer.h>
 
 #include "sc_test.h"
 

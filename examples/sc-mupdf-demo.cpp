@@ -8,10 +8,10 @@
 #include <stdexcept>
 #include <string>
 
-#include <params.h>
-#include <sc.h>
+#include <sc/core/params.h>
+#include <sc/core/sc.h>
 
-#include <mupdf.h>
+#include <sc/mupdf/mupdf.h>
 
 #include "sample_pdf.h"
 

@@ -7,10 +7,10 @@
 #include <string>
 #include <utility>
 
-#include <params.h>
-#include <sc.h>
+#include <sc/core/params.h>
+#include <sc/core/sc.h>
 
-#include <mupdf_writer.h>
+#include <sc/mupdf/mupdf_writer.h>
 
 int main(int argc, char **argv) {
     // sc::params brings -h/--help, and reports mistakes and exits.

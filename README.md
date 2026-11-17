@@ -32,7 +32,7 @@ target_link_libraries(myapp PRIVATE sc::sc-mupdf-shared)
 ```
 
 ```cpp
-#include <mupdf.h>
+#include <sc/mupdf/mupdf.h>
 
 const sc::mupdf::document doc{"letter.pdf"};       // or document::from_memory(bytes); a password if needed
 for (const auto page: doc.pages()) {
@@ -84,7 +84,7 @@ same calls as [sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf)'s
 `sc::pdf`, so a program can switch between the two by changing the class:
 
 ```cpp
-#include <mupdf_writer.h>
+#include <sc/mupdf/mupdf_writer.h>
 
 sc::mupdf::writer pdf{"hello.pdf"};                          // A4 portrait
 // sc::mupdf::writer pdf{"wide.pdf", sc::page_size::A3, sc::orientation::landscape};

@@ -8,9 +8,9 @@ option(SC_MUPDF_BUILD_TESTS "Build simply-cpp-mupdf tests" ${PROJECT_IS_TOP_LEVE
 get_sc_version()
 message(STATUS "SimplyCPP ${SC_MODULE} Version: ${SC_VERSION}")
 
-find_or_install_package(sc-core simply-cpp-dev simply-cpp 1.20.0)
+find_or_install_package(sc-core simply-cpp-dev simply-cpp 2.2.0)
 # sc::canvas, which the writer implements, and sc::drawing.
-find_or_install_package(sc-graphics simply-cpp-graphics-dev simply-cpp-graphics 6.3.0)
+find_or_install_package(sc-graphics simply-cpp-graphics-dev simply-cpp-graphics 6.4.0)
 # MuPDF has no CMake package: cmake/Findmupdf.cmake finds it (Homebrew's, or Ubuntu's libmupdf-dev:
 # static on jammy and noble, shared on resolute).
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -22,7 +22,7 @@ set(SOURCE_LINK_LIBRARIES)
 
 # MuPDF stays out of the installed headers (fonts are found by sc-graphics' sc::font_face); mupdf.h only names MuPDF's types.
 add_sc_object(mupdf
-        SOURCES src/mupdf_writer.cpp include/mupdf_writer.h src/fitz_call.h
+        SOURCES src/mupdf_writer.cpp include/sc/mupdf/mupdf_writer.h src/fitz_call.h
         INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src
         LINK_LIBRARIES sc::sc-core sc::sc-graphics mupdf::mupdf
         PUBLIC_LINK_LIBRARIES sc::sc-core sc::sc-graphics mupdf::mupdf)
@@ -70,5 +70,5 @@ add_sc_example(sc-mupdf-write)
 # dpkg-shlibdeps. A consumer links the static library too, so the -dev package brings MuPDF's
 # headers and, for jammy's and noble's static libmupdf, the -dev packages of what it needs.
 package_sc_module(
-        DEV_DEPENDS "simply-cpp-dev (>= 1.20.0~)" "simply-cpp-graphics-dev (>= 6.3.0~)" libmupdf-dev libmujs-dev libgumbo-dev libharfbuzz-dev
+        DEV_DEPENDS "simply-cpp-dev (>= 1.20.0~)" "simply-cpp-graphics-dev (>= 6.4.0~)" libmupdf-dev libmujs-dev libgumbo-dev libharfbuzz-dev
         libfreetype-dev libjbig2dec0-dev libopenjp2-7-dev libjpeg-dev zlib1g-dev)

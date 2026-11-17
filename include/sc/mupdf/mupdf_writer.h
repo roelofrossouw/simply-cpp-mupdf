@@ -1,12 +1,12 @@
 #pragma once
 
-#include "mupdf.h"
+#include <sc/mupdf/mupdf.h>
 
-#include <canvas.h>
-#include <font.h>
-#include <page.h>
-#include <rect.h>
-#include <text.h>
+#include <sc/graphics/canvas.h>
+#include <sc/graphics/font.h>
+#include <sc/graphics/page.h>
+#include <sc/core/rect.h>
+#include <sc/graphics/text.h>
 
 #include <filesystem>
 #include <memory>

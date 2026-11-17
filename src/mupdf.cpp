@@ -1,7 +1,7 @@
-#include "mupdf.h"
+#include <sc/mupdf/mupdf.h>
 
-#include <core.h>
-#include <utf8.h>
+#include <sc/core/core.h>
+#include <sc/core/utf8.h>
 
 #include "fitz_call.h"
 

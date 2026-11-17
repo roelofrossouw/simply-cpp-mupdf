@@ -1,6 +1,6 @@
 // Reads the sample PDF (examples/sample_pdf.h) from memory and from a file: pages, blocks, lines,
 // their positions and fonts, metadata and page images, plus the mistakes that throw.
-#include "mupdf.h"
+#include <sc/mupdf/mupdf.h>
 
 #include "sample_pdf.h"
 #include "sc_test.h"

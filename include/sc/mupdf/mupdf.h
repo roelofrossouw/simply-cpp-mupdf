@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rect.h>
+#include <sc/core/rect.h>
 
 #include <cstddef>
 #include <filesystem>
