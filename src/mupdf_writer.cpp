@@ -224,7 +224,7 @@ namespace sc::mupdf {
                     detail::call(context, "sc::mupdf::writer: adding a page", [&] { pdf_insert_page(context, document, INT_MAX, added); });
                 }
 #ifdef SC_MUPDF_HAS_SUBSET_FONTS
-                // Only the glyphs the pages use, as sc::pdf embeds them; older MuPDFs embed whole fonts.
+                // Only the glyphs the pages use, as sc::pdflite::writer embeds them; older MuPDFs embed whole fonts.
                 detail::call(context, "sc::mupdf::writer: subsetting fonts", [&] { pdf_subset_fonts(context, document, 0, nullptr); });
 #endif
                 pdf_write_options options = pdf_default_write_options;
@@ -245,7 +245,7 @@ namespace sc::mupdf {
                 pdf_obj *annotation = pdf_new_dict(context, document, 5);
                 pdf_dict_put(context, annotation, PDF_NAME(Type), PDF_NAME(Annot));
                 pdf_dict_put(context, annotation, PDF_NAME(Subtype), PDF_NAME(Link));
-                pdf_dict_put_int(context, annotation, PDF_NAME(F), 4); // printed, as sc::pdf's links are
+                pdf_dict_put_int(context, annotation, PDF_NAME(F), 4); // printed, as sc::pdflite::writer's links are
                 pdf_dict_put_rect(context, annotation, PDF_NAME(Rect),
                                   fz_make_rect(f(area.left()), f(height - area.bottom()), f(area.right()), f(height - area.top())));
                 pdf_obj *border = pdf_dict_put_array(context, annotation, PDF_NAME(Border), 3);

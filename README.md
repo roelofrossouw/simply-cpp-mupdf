@@ -2,8 +2,8 @@
 
 C++20 PDF reader and writer on [MuPDF](https://mupdf.com/): a document's
 pages, each page's text as blocks of lines with their positions and fonts, and
-pages drawn as PNG images; and PDFs written with the same calls as sc-pdf's
-`sc::pdf`, so the two engines can be swapped and compared. MuPDF also opens
+pages drawn as PNG images; and PDFs written with the same calls as sc-pdflite's
+`sc::pdflite::writer`, so the two engines can be swapped and compared. MuPDF also opens
 XPS, EPUB, CBZ and images.
 
 ## Licence, and the alternative
@@ -14,10 +14,10 @@ given to, and to the users of a network service built on it (or needs a
 commercial MuPDF licence from [Artifex](https://artifex.com/licensing/)).
 
 **For writing PDFs under a permissive licence, use
-[sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf) instead:**
+[sc-pdflite](https://github.com/roelofrossouw/simply-cpp-pdflite) instead:**
 Apache-2.0, on simply-cpp's own sc-pdflite, with the same calls. `sc::mupdf::writer` and
-`sc::pdf` are both an `sc::canvas`, so switching is one class name. What
-sc-pdf doesn't do is read, search or render PDFs: that's what sc-mupdf adds.
+`sc::pdflite::writer` are both an `sc::canvas`, so switching is one class name. What
+sc-pdflite doesn't do is extract text from or render PDFs: that's what sc-mupdf adds.
 The wiki's [PDF engines](https://github.com/roelofrossouw/simply-cpp/wiki/PDF-Engines)
 page compares the two.
 
@@ -80,8 +80,8 @@ subsetting (below).
 
 `sc::mupdf::writer` (`mupdf_writer.h`) is an `sc::canvas` from
 [sc-graphics](https://github.com/roelofrossouw/simply-cpp-graphics) with the
-same calls as [sc-pdf](https://github.com/roelofrossouw/simply-cpp-pdf)'s
-`sc::pdf`, so a program can switch between the two by changing the class:
+same calls as [sc-pdflite](https://github.com/roelofrossouw/simply-cpp-pdflite)'s
+`sc::pdflite::writer`, so a program can switch between the two by changing the class:
 
 ```cpp
 #include <sc/mupdf/mupdf_writer.h>
@@ -101,17 +101,17 @@ pdf.close();                                                 // or let the destr
 
 Page sizes are sc-graphics' `sc::page_size` (`A3`, `A4`, `A5`, `letter`,
 `legal`; `page.h`) and `sc::orientation` (`portrait`, `landscape`), as for
-`sc::pdf`; every page of a file has the same size.
+`sc::pdflite::writer`; every page of a file has the same size.
 
 Each shape takes an `sc::appearance` (stroke and fill), and a colour's alpha
-is honoured for fills, strokes and text, as in sc-pdf. Fonts are found by
+is honoured for fills, strokes and text, as in sc-pdflite. Fonts are found by
 sc-graphics' `sc::font_face` (fontconfig), so both writers embed the same font
 files. Curves, even-odd fills and SVG clip paths stay vector graphics.
 
 With MuPDF 1.27 and later (resolute, Homebrew) only the glyphs used are
 embedded. Jammy's 1.19 and noble's 1.23 can't subset, so they embed whole
 fonts and their files are much larger. The files aren't byte-for-byte what
-sc-pdf writes, but the pages look the same and read back the same text.
+sc-pdflite writes, but the pages look the same and read back the same text.
 `close()` throws `sc::mupdf::error` when the file can't be saved.
 
 ## Demos
@@ -121,7 +121,7 @@ sc-mupdf-write [--size A3|A4|A5|letter|legal] [--landscape] [--svg FILE] [OUTPUT
 sc-mupdf-demo [--page N] [--scale S] [--png FILE] [-p PASSWORD] [FILE]
 ```
 
-`sc-mupdf-write` draws `sc-pdf-demo`'s page call for call with MuPDF, so the
+`sc-mupdf-write` draws `sc-pdflite-writer`'s page call for call with MuPDF, so the
 two files can be compared: text, shapes, SVG drawings, a half-transparent
 circle over the top boxes, a link, and a race track placed in the
 bottom-right corner by its exact `bounds()`. On a shorter page (Letter, or

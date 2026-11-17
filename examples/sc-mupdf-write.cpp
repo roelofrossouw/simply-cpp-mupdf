@@ -1,4 +1,4 @@
-// Writes sc-pdf-demo's page with MuPDF, call for call, so the two files can be compared: text,
+// Writes sc-pdflite-writer's page with MuPDF, call for call, so the two files can be compared: text,
 // shapes, SVG drawings, a half-transparent circle over the boxes, a link, and a race track placed
 // in the bottom-right corner by its bounds(). Each line shows a call and what it returned.
 
@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     // sc::params brings -h/--help, and reports mistakes and exits.
     const sc::params args{argc, argv, {
         {"name", "sc-mupdf-write"},
-        {"description", "Writes the same page as sc-pdf-demo, but with MuPDF instead of sc-pdflite, so you can put the two "
+        {"description", "Writes the same page as sc-pdflite-writer, but with MuPDF instead of sc-pdflite, so you can put the two "
                         "PDFs side by side and compare them.\nMore on the wiki: "
                         "https://github.com/roelofrossouw/simply-cpp/wiki/PDF-Engines"},
         {"options", {
