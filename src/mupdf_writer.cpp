@@ -70,7 +70,7 @@ namespace sc::mupdf {
         // One fz_font serves every size of a face: keyed by family, weight, italic and style.
         std::map<std::tuple<std::string, int, bool, std::string>, fz_font *> fonts;
 
-        impl(const std::filesystem::path &file, const page_size size, const orientation turned) : filename(file.string()) {
+        impl(const std::filesystem::path &file, const graphics::page_size size, const graphics::orientation turned) : filename(file.string()) {
             const auto page = page_dimensions(size, turned);
             width = page.width();
             height = page.height();
@@ -140,11 +140,11 @@ namespace sc::mupdf {
         }
 
         // Fills (by the fill's rule) and/or strokes steps; whichever is none is left out.
-        void paint(const sc::appearance &look, const path &steps) {
+        void paint(const sc::graphics::appearance &look, const path &steps) {
             const auto &stroke = look.stroke();
             const auto &fill = look.fill();
             const bool stroke_it = stroke.visible(), fill_it = fill.visible();
-            const bool even_odd = fill.rule() == fill_rule::even_odd;
+            const bool even_odd = fill.rule() == graphics::fill_rule::even_odd;
             if (!stroke_it && !fill_it) return;
             fz_device *target = device();
             fz_path *made = nullptr;
@@ -182,7 +182,7 @@ namespace sc::mupdf {
             }
         }
 
-        fz_font *font_for(const font &spec) {
+        fz_font *font_for(const graphics::font &spec) {
             const auto key = std::tuple{spec.family, spec.weight, spec.italic, spec.style};
             if (const auto found = fonts.find(key); found != fonts.end()) return found->second;
             const auto face = spec.face();
@@ -197,7 +197,7 @@ namespace sc::mupdf {
 
         // How far a glyph of letter rises above the baseline, in points: the top of its outline
         // (fz_bound_glyph can give the whole font's box instead). Glyph space is y up.
-        double glyph_height(const font &spec, const int letter) {
+        double glyph_height(const graphics::font &spec, const int letter) {
             fz_font *face = font_for(spec);
             fz_path *outline = nullptr;
             detail::call(context, "sc::mupdf::writer", [&] { outline = fz_outline_glyph(context, face, fz_encode_character(context, face, letter), fz_identity); });
@@ -263,7 +263,7 @@ namespace sc::mupdf {
         }
     };
 
-    writer::writer(const std::filesystem::path &filename, const page_size size, const orientation turned)
+    writer::writer(const std::filesystem::path &filename, const graphics::page_size size, const graphics::orientation turned)
         : impl_(std::make_unique<impl>(filename, size, turned)) {
     }
 
@@ -312,7 +312,7 @@ namespace sc::mupdf {
         });
     }
 
-    void writer::paint_bitmap(const bitmap &picture, const transform &placement) {
+    void writer::paint_bitmap(const graphics::bitmap &picture, const transform &placement) {
         fz_device *target = impl_->device();
         fz_context *context = impl_->context;
         fz_image *image = nullptr;
@@ -322,7 +322,7 @@ namespace sc::mupdf {
             fz_always(context) fz_drop_buffer(context, bytes);
             fz_catch(context) fz_rethrow(context);
         });
-        // The unit square as sc::canvas places it: MuPDF's device is y down too. Identical images
+        // The unit square as sc::graphics::canvas places it: MuPDF's device is y down too. Identical images
         // are written once, by MuPDF's digest of them.
         const auto dropped = own<fz_drop_image>(context, image);
         const auto &m = placement;
@@ -336,15 +336,15 @@ namespace sc::mupdf {
         impl_->pages[impl_->current].links.emplace_back(url, pos);
     }
 
-    void writer::paint_polygon(const polygon &shape, const sc::appearance &look) { impl_->paint(look, to_path(shape)); }
+    void writer::paint_polygon(const polygon &shape, const sc::graphics::appearance &look) { impl_->paint(look, to_path(shape)); }
 
-    void writer::paint_circle(const circle &shape, const sc::appearance &look) { impl_->paint(look, to_path(shape)); }
+    void writer::paint_circle(const circle &shape, const sc::graphics::appearance &look) { impl_->paint(look, to_path(shape)); }
 
-    void writer::paint_line(const sc::line &shape, const sc::stroke &stroke) { impl_->paint(stroke, to_path(shape)); }
+    void writer::paint_line(const sc::line &shape, const sc::graphics::stroke &stroke) { impl_->paint(stroke, to_path(shape)); }
 
-    void writer::paint_rounded_rect(const rounded_rect &shape, const sc::appearance &look) { impl_->paint(look, to_path(shape)); }
+    void writer::paint_rounded_rect(const rounded_rect &shape, const sc::graphics::appearance &look) { impl_->paint(look, to_path(shape)); }
 
-    void writer::paint_path(const path &shape, const sc::appearance &look) { impl_->paint(look, shape); }
+    void writer::paint_path(const path &shape, const sc::graphics::appearance &look) { impl_->paint(look, shape); }
 
     void writer::push_clip(const path &shape) {
         fz_device *target = impl_->device();
@@ -363,7 +363,7 @@ namespace sc::mupdf {
         detail::call(impl_->context, "sc::mupdf::writer", [&] { fz_pop_clip(impl_->context, target); });
     }
 
-    void writer::paint_text(const text &sample, const sc::fill &fill) {
+    void writer::paint_text(const graphics::text &sample, const sc::graphics::fill &fill) {
         fz_device *target = impl_->device();
         fz_context *context = impl_->context;
         fz_font *face = impl_->font_for(sample.font);
@@ -381,7 +381,7 @@ namespace sc::mupdf {
         });
     }
 
-    double writer::measure_width(const text &sample) {
+    double writer::measure_width(const graphics::text &sample) {
         fz_context *context = impl_->context;
         fz_font *face = impl_->font_for(sample.font);
         double advance = 0;
@@ -395,7 +395,7 @@ namespace sc::mupdf {
         return advance * sample.font.size;
     }
 
-    double writer::measure_x_height(const font &font) { return impl_->glyph_height(font, 'x'); }
+    double writer::measure_x_height(const graphics::font &font) { return impl_->glyph_height(font, 'x'); }
 
-    double writer::measure_cap_height(const font &font) { return impl_->glyph_height(font, 'H'); }
+    double writer::measure_cap_height(const graphics::font &font) { return impl_->glyph_height(font, 'H'); }
 }

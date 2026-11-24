@@ -5,7 +5,7 @@
 #include <sc/graphics/canvas.h>
 #include <sc/graphics/font.h>
 #include <sc/graphics/page.h>
-#include <sc/core/rect.h>
+#include <sc/geometry/rect.h>
 #include <sc/graphics/text.h>
 
 #include <filesystem>
@@ -13,17 +13,17 @@
 #include <string>
 
 namespace sc::mupdf {
-    // A PDF file written with MuPDF: an sc::canvas with the same calls as sc-pdflite's sc::pdflite::writer (sc-pdflite),
+    // A PDF file written with MuPDF: an sc::graphics::canvas with the same calls as sc-pdflite's sc::pdflite::writer (sc-pdflite),
     // so the two can be swapped and their files compared. Positions are in points (1/72 inch) from
     // the page's top-left corner, y down. A colour's alpha is honoured; fonts are found through
     // fontconfig, as sc::pdflite::writer finds them, and embedded. Drawing goes to the current page: the newest,
     // unless set_page() moved back. close() finishes the file, or else the destructor, which can't
     // report a failure.
-    class writer : public canvas {
+    class writer : public graphics::canvas {
     public:
         // Starts the file with one page; every page has this size and orientation (page.h). Throws
         // sc::mupdf::error when MuPDF can't.
-        explicit writer(const std::filesystem::path &filename, page_size size = page_size::A4, orientation turned = orientation::portrait);
+        explicit writer(const std::filesystem::path &filename, graphics::page_size size = graphics::page_size::A4, graphics::orientation turned = graphics::orientation::portrait);
 
         ~writer() override;
 
@@ -64,29 +64,29 @@ namespace sc::mupdf {
         // Strokes are a colour and a width, fills a colour and a fill rule (even-odd or nonzero).
         // Other stroke and fill styles aren't drawn yet. Text throws std::runtime_error when
         // fontconfig finds no font.
-        void paint_polygon(const polygon &shape, const sc::appearance &look) override;
+        void paint_polygon(const polygon &shape, const sc::graphics::appearance &look) override;
 
-        void paint_circle(const circle &shape, const sc::appearance &look) override;
+        void paint_circle(const circle &shape, const sc::graphics::appearance &look) override;
 
-        void paint_line(const sc::line &shape, const sc::stroke &stroke) override; // sc::line: in here, line is the reader's
+        void paint_line(const sc::line &shape, const sc::graphics::stroke &stroke) override; // sc::line: in here, line is the reader's
 
-        void paint_text(const text &sample, const sc::fill &fill) override;
+        void paint_text(const graphics::text &sample, const sc::graphics::fill &fill) override;
 
         // Throws sc::mupdf::error when MuPDF can't read the image.
-        void paint_bitmap(const bitmap &picture, const transform &placement) override;
+        void paint_bitmap(const graphics::bitmap &picture, const transform &placement) override;
 
         // In points, from the font's glyphs: the advances, and the height of x and H above the
         // baseline.
-        double measure_width(const text &sample) override;
+        double measure_width(const graphics::text &sample) override;
 
-        double measure_x_height(const font &font) override;
+        double measure_x_height(const graphics::font &font) override;
 
-        double measure_cap_height(const font &font) override;
+        double measure_cap_height(const graphics::font &font) override;
 
         // Real curves, and clipping (so SVG clip paths work).
-        void paint_rounded_rect(const rounded_rect &shape, const sc::appearance &look) override;
+        void paint_rounded_rect(const rounded_rect &shape, const sc::graphics::appearance &look) override;
 
-        void paint_path(const path &shape, const sc::appearance &look) override;
+        void paint_path(const path &shape, const sc::graphics::appearance &look) override;
 
     public:
         void push_clip(const path &shape) override;

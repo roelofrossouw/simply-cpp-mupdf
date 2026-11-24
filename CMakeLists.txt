@@ -8,9 +8,10 @@ option(SC_MUPDF_BUILD_TESTS "Build simply-cpp-mupdf tests" ${PROJECT_IS_TOP_LEVE
 get_sc_version()
 message(STATUS "SimplyCPP ${SC_MODULE} Version: ${SC_VERSION}")
 
-find_or_install_package(sc-core simply-cpp-dev simply-cpp 3.0.0)
+find_or_install_package(sc-core simply-cpp-dev simply-cpp 4.0.0)
+find_or_install_package(sc-geometry simply-cpp-geometry-dev simply-cpp-geometry 1.0.0)
 # sc::canvas, which the writer implements, and sc::drawing.
-find_or_install_package(sc-graphics simply-cpp-graphics-dev simply-cpp-graphics 7.0.0)
+find_or_install_package(sc-graphics simply-cpp-graphics-dev simply-cpp-graphics 8.0.0)
 # MuPDF has no CMake package: cmake/Findmupdf.cmake finds it (Homebrew's, or Ubuntu's libmupdf-dev:
 # static on jammy and noble, shared on resolute).
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -24,8 +25,8 @@ set(SOURCE_LINK_LIBRARIES)
 add_sc_object(mupdf
         SOURCES src/mupdf_writer.cpp include/sc/mupdf/mupdf_writer.h src/fitz_call.h
         INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src
-        LINK_LIBRARIES sc::sc-core sc::sc-graphics mupdf::mupdf
-        PUBLIC_LINK_LIBRARIES sc::sc-core sc::sc-graphics mupdf::mupdf)
+        LINK_LIBRARIES sc::sc-core sc::sc-geometry sc::sc-graphics mupdf::mupdf
+        PUBLIC_LINK_LIBRARIES sc::sc-core sc::sc-geometry sc::sc-graphics mupdf::mupdf)
 
 # Newer MuPDFs (resolute's 1.27, Homebrew's) can embed only the glyphs a PDF uses; jammy's 1.19
 # and noble's 1.23 embed whole fonts.
@@ -70,5 +71,5 @@ add_sc_example(sc-mupdf-write)
 # dpkg-shlibdeps. A consumer links the static library too, so the -dev package brings MuPDF's
 # headers and, for jammy's and noble's static libmupdf, the -dev packages of what it needs.
 package_sc_module(
-        DEV_DEPENDS "simply-cpp-dev (>= 3.0.0~)" "simply-cpp-graphics-dev (>= 7.0.0~)" libmupdf-dev libmujs-dev libgumbo-dev libharfbuzz-dev
+        DEV_DEPENDS "simply-cpp-dev (>= 4.0.0~)" "simply-cpp-geometry-dev (>= 1.0.0~)" "simply-cpp-graphics-dev (>= 8.0.0~)" libmupdf-dev libmujs-dev libgumbo-dev libharfbuzz-dev
         libfreetype-dev libjbig2dec0-dev libopenjp2-7-dev libjpeg-dev zlib1g-dev)

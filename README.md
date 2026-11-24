@@ -16,7 +16,7 @@ commercial MuPDF licence from [Artifex](https://artifex.com/licensing/)).
 **For writing PDFs under a permissive licence, use
 [sc-pdflite](https://github.com/roelofrossouw/simply-cpp-pdflite) instead:**
 Apache-2.0, on simply-cpp's own sc-pdflite, with the same calls. `sc::mupdf::writer` and
-`sc::pdflite::writer` are both an `sc::canvas`, so switching is one class name. What
+`sc::pdflite::writer` are both an `sc::graphics::canvas`, so switching is one class name. What
 sc-pdflite doesn't do is extract text from or render PDFs: that's what sc-mupdf adds.
 The wiki's [PDF engines](https://github.com/roelofrossouw/simply-cpp/wiki/PDF-Engines)
 page compares the two.
@@ -78,7 +78,7 @@ subsetting (below).
 
 ## Writing
 
-`sc::mupdf::writer` (`mupdf_writer.h`) is an `sc::canvas` from
+`sc::mupdf::writer` (`mupdf_writer.h`) is an `sc::graphics::canvas` from
 [sc-graphics](https://github.com/roelofrossouw/simply-cpp-graphics) with the
 same calls as [sc-pdflite](https://github.com/roelofrossouw/simply-cpp-pdflite)'s
 `sc::pdflite::writer`, so a program can switch between the two by changing the class:
@@ -87,25 +87,25 @@ same calls as [sc-pdflite](https://github.com/roelofrossouw/simply-cpp-pdflite)'
 #include <sc/mupdf/mupdf_writer.h>
 
 sc::mupdf::writer pdf{"hello.pdf"};                          // A4 portrait
-// sc::mupdf::writer pdf{"wide.pdf", sc::page_size::A3, sc::orientation::landscape};
-pdf.draw(sc::text{"Hello", {50, 80}, sc::font::bold("sans-serif", 24)});
+// sc::mupdf::writer pdf{"wide.pdf", sc::graphics::page_size::A3, sc::graphics::orientation::landscape};
+pdf.draw(sc::graphics::text{"Hello", {50, 80}, sc::graphics::font::bold("sans-serif", 24)});
 pdf.draw(sc::rounded_rect{sc::rect{50, 130, 200, 80}, 8}, {sc::color::Black, sc::color{0.9, 0.95, 1}});
-pdf.draw(sc::circle{{300, 80}, 20}, sc::appearance::filled(sc::color{0, 0, 0, 0.5})); // half transparent
-pdf.draw(sc::drawing::load_svg("logo.svg"), sc::rect{50, 230, 100, 100});
+pdf.draw(sc::circle{{300, 80}, 20}, sc::graphics::appearance::filled(sc::color{0, 0, 0, 0.5})); // half transparent
+pdf.draw(sc::graphics::drawing::load_svg("logo.svg"), sc::rect{50, 230, 100, 100});
 pdf.draw_image("logo.png", {300, 130, 200, 80});
-pdf.draw(sc::bitmap::load("photo.jpg"), {50, 350, 160, 120}); // stretched to the box
+pdf.draw(sc::graphics::bitmap::load("photo.jpg"), {50, 350, 160, 120}); // stretched to the box
 pdf.add_link("https://example.com", {50, 30, 120, 25});
 pdf.new_page();
 pdf.close();                                                 // or let the destructor finish it
 ```
 
-Page sizes are sc-graphics' `sc::page_size` (`A3`, `A4`, `A5`, `letter`,
-`legal`; `page.h`) and `sc::orientation` (`portrait`, `landscape`), as for
+Page sizes are sc-graphics' `sc::graphics::page_size` (`A3`, `A4`, `A5`, `letter`,
+`legal`; `page.h`) and `sc::graphics::orientation` (`portrait`, `landscape`), as for
 `sc::pdflite::writer`; every page of a file has the same size.
 
-Each shape takes an `sc::appearance` (stroke and fill), and a colour's alpha
+Each shape takes an `sc::graphics::appearance` (stroke and fill), and a colour's alpha
 is honoured for fills, strokes and text, as in sc-pdflite. Fonts are found by
-sc-graphics' `sc::font_face` (fontconfig), so both writers embed the same font
+sc-graphics' `sc::graphics::font_face` (fontconfig), so both writers embed the same font
 files. Curves, even-odd fills and SVG clip paths stay vector graphics.
 
 With MuPDF 1.27 and later (resolute, Homebrew) only the glyphs used are
